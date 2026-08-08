@@ -1,0 +1,352 @@
+# Methodology
+
+## Introduction to Python for Machine Learning
+
+This project implements a comprehensive Retrieval-Augmented Generation (RAG) system using 
+Python, designed to handle multiple data sources including financial documents, YouTube 
+transcripts, and structured CSV data. The system leverages large language models (LLMs) through 
+Ollama, vector databases via Pinecone, and modern web interfaces through Gradio to create an 
+intelligent multi-agent assistant. 
+
+The core methodology combines traditional information retrieval techniques with modern 
+transformer-based language models to provide accurate, contextual responses across different 
+domains of knowledge. 
+
+## System Architecture Overview
+![RAG Workflow Diagram](../figures/RAG.jpg)
+
+The RAG workflow diagram above illustrates the fundamental processing pipeline of our system. The workflow demonstrates the complete data flow from document ingestion through response generation:
+
+1. **PDF Parsing**: Documents are processed and parsed into manageable chunks with page preservation
+2. **Encoding**: Text chunks are converted into embeddings using the all-mpnet-base-v2 model
+3. **Vector Database Indexing**: Embeddings are stored in Pinecone with namespace-based organization
+4. **Query Processing**: User queries are encoded and matched against stored documents
+5. **Similarity Search**: Most relevant document chunks are retrieved with page citations
+6. **Response Generation**: The Phi-3 model generates contextual responses
+7. **Final Output**: Users receive comprehensive answers with proper citations and visual references
+
+![Multi-Modal System Architecture](../figures/RAG_SYSTEM.png)
+
+The multi-modal system architecture diagram showcases the integration of various specialized workflows within our AI assistant platform:
+
+- **Document QA Workflow**: Handles PDF processing, embedding generation, and semantic search
+- **YouTube QA Workflow**: Manages video transcript extraction and analysis
+- **SQL Agent Workflow**: Processes CSV data and enables natural language database queries
+- **AI Assistant Integration Hub**: Coordinates all workflows through intelligent routing
+
+## Platform and Machine Configurations Used 
+
+### Development Environment 
+- **Primary Platform**: Local development environment with Docker containerization support 
+- **Alternative Platforms**: Compatible with Google Colab, Kaggle notebooks, and cloud instances 
+- **Operating System**: Cross-platform support (Windows, macOS, Linux) with WSL compatibility 
+
+### Machine Configuration Requirements 
+
+#### Minimum Requirements 
+| Component | Specification | 
+|-----------|---------------| 
+| **CPU** | 4-core processor (Intel i5 or AMD Ryzen 5 equivalent) | 
+| **RAM** | 8GB *(16GB recommended for optimal performance)* | 
+| **Storage** | 20GB free space for models and vector databases | 
+| **GPU** | Optional but recommended (NVIDIA GTX 1060 or better for faster inference) | 
+
+#### Recommended Configuration 
+| Component | Specification | 
+|-----------|---------------| 
+| **CPU** | 8-core processor (Intel i7/i9 or AMD Ryzen 7/9) | 
+| **RAM** | 32GB for handling large document collections | 
+| **Storage** | SSD with 50GB+ free space | 
+| **GPU** | NVIDIA RTX 3070 or better with 8GB+ VRAM | 
+
+### Software Dependencies 
+- **Python Version**: 3.8+ 
+- **Key Libraries**:
+
+1. LangChain for LLM orchestration 
+2. Pinecone for vector database operations 
+3. Gradio for web interface 
+4. Ollama for local LLM serving 
+5. YouTube Transcript API for video processing 
+
+## Data Architecture and Sources 
+
+### Data Source Classification 
+The system processes three primary data types: 
+
+1. **Structured Documents**: SEC filings (10-K forms) from companies like EnerSys, Apple, and 
+NVIDIA 
+2. **Unstructured Video Content**: YouTube transcripts and metadata 
+3. **Tabular Data**: CSV files for SQL-based querying 
+
+### Data Preprocessing Pipeline 
+
+#### Document Processing 
+``` markdown 
+Raw PDF → Text Extraction → Chunking (700/150) → Embedding → Vector Storage 
+``` 
+
+#### Video Content Processing 
+``` markdown 
+YouTube URL → Transcript Extraction → Text Preprocessing → Context Storage 
+``` 
+
+#### Structured Data Processing 
+``` markdown 
+CSV Upload → Schema Detection → SQLite Database → Query Interface 
+``` 
+
+## Model Planning and Architecture 
+
+### Multi-Agent System Design 
+The system implements a **router-based multi-agent architecture** with the following specialized 
+agents: 
+
+#### 1. Document QA Agents (Company-Specific) 
+- **EnerSys Agent**: Specialized in battery and energy storage company data 
+- **Apple Agent**: Focused on consumer electronics and technology financials 
+- **NVIDIA Agent**: Expert in semiconductor and AI hardware information 
+
+#### 2. Content Discovery Agent 
+- **YouTube Search Agent**: Retrieves and analyzes video content based on queries 
+
+#### 3. General Knowledge Agent 
+- **Web Search Agent**: Handles general queries using Tavily API for real-time information 
+
+#### 4. Structured Data Agent 
+- **SQL Agent**: Processes natural language queries on tabular data 
+
+### Model Selection Strategy 
+
+#### Primary LLM: Ollama with Phi-3 Mini 
+```python 
+# Model Configuration 
+OLLAMA_MODEL = "phi3:mini" 
+OLLAMA_API_BASE = "http://localhost:11434/api" 
+# Model Parameters 
+temperature = 0.1  # Low temperature for factual accuracy 
+top_p = 0.9       # Nucleus sampling for diversity 
+num_predict = 512  # Token limit for responses 
+``` 
+
+#### Embedding Model: Sentence Transformers 
+- **Model**: all-mpnet-base-v2 for semantic similarity 
+- **Dimension**: 768 dimensions 
+- **Purpose**: Converting text chunks into dense vector representations 
+
+## System Implementation 
+
+### Vector Database Configuration 
+
+#### Pinecone Setup 
+```python 
+# Index Configuration 
+INDEX_NAME = "document-analysis" 
+EMBEDDING_DIMENSION = 768 
+METRIC = "cosine"  # Cosine similarity for semantic search 
+``` 
+
+#### Retrieval Strategy 
+- **Top-K Retrieval**: Returns top 5 most relevant chunks 
+- **Namespace Filtering**: Company-specific document organization 
+- **Page Preservation**: Maintains page numbers for citations 
+
+### Agent Routing Logic 
+
+#### LLM-Based Routing 
+The system uses the primary LLM to determine which specialized agent should handle each query: 
+```python 
+def llm_route_question(question: str, chat_history: list = None) -> str: 
+"""
+Intelligent routing based on: 
+1. Query content analysis 
+2. Named entity recognition 
+3. Context from chat history 
+4. Domain-specific keywords 
+""" 
+``` 
+
+#### Routing Decision Matrix 
+| Query Type | Target Agent | Confidence Threshold | 
+|------------|--------------|---------------------| 
+| Company-specific financial | Company Agent | 0.8+ | 
+| Video/Tutorial request | YouTube Agent | 0.9+ | 
+| General knowledge | Web Search Agent | 0.6+ | 
+| Data analysis | SQL Agent | 0.7+ | 
+
+### Document Processing Implementation
+
+#### Chunking Strategy
+- **Chunk Size**: 700 tokens per chunk
+- **Overlap**: 150 tokens between chunks
+- **Strategy**: Recursive chunking with page preservation
+- **Table Handling**: Special processing for tabular data
+
+#### Image Mapping System
+- **Page Images**: Automatic extraction and storage
+- **Citation System**: JSON-based image mapping
+- **Visual References**: Gallery display of cited pages
+
+### Response Generation 
+
+#### Prompt Engineering 
+```python 
+prompt_template = """ 
+Based on the following context from {company} {document_type},  
+answer the question correctly and concisely. 
+Context: {retrieved_context} 
+Question: {user_question} 
+Chat History: {conversation_history} 
+Answer with specific page references where applicable: 
+""" 
+``` 
+
+#### Parameter Optimization 
+- **Temperature Control**: 0.1 for factual accuracy
+- **Length Control**: 512 token limit for responses
+- **Citation Integration**: Automatic page number and source attribution
+
+### SQL Agent Implementation
+
+#### Natural Language to SQL Conversion
+- **Column Matching**: Fuzzy matching for column names with enhanced error handling
+- **Query Generation**: Two-tier approach with Ollama and fallback mechanisms
+- **Schema Detection**: Automatic column type inference from CSV data
+- **Query Validation**: Robust error handling with informative messages
+
+#### SQL Generation Features
+```python
+# Enhanced SQL generation with better column matching
+def generate_sql_with_ollama(query, table_name, columns, model=OLLAMA_MODEL):
+    # Create a more detailed prompt with column information
+    column_info = "\n".join([f"- {col}" for col in columns])
+    
+    prompt = f"""
+You are an expert SQL query generator. Given a natural language question and 
+database schema, generate a precise SQL query.
+
+Database Information:
+- Table name: {table_name}
+- Available columns:
+{column_info}
+
+IMPORTANT RULES:
+1. Generate ONLY the SQL query, no explanations or markdown
+2. Use proper SQL syntax for SQLite
+3. Column names must EXACTLY match the available columns listed above
+4. Always use LIMIT clause for SELECT queries (default LIMIT 10)
+5. For aggregation queries (COUNT, SUM, AVG, etc.), don't use LIMIT unless grouping
+6. Use LIKE operator with % wildcards for text searches
+7. If a column name in the question doesn't exist, find the closest matching 
+   column from the list above
+"""
+```
+
+### YouTube QA Implementation
+
+#### Transcript Processing
+- **Background Fetching**: Asynchronous transcript retrieval
+- **Caching System**: Persistent storage of transcripts in JSON format
+- **Error Handling**: Robust error management for failed transcript fetches
+- **Context Management**: Efficient handling of long transcripts
+
+#### QA Features
+```python
+# Answer generation with context management
+def answer_question(question, url, model):
+    video_id = extract_video_id(url)
+    if video_id not in video_context:
+        return "Transcript not ready yet."
+    context = video_context[video_id]
+    if context.startswith("Error"):
+        return context
+    prompt = f"""Answer the following question based on this YouTube video transcript:\n
+    Transcript:\n{context[:4000]}\n
+    Question: {question}
+    """
+```
+
+#### Video Analysis Capabilities
+- **Transcript Summarization**: AI-powered video content summarization
+- **Question Answering**: Context-aware responses based on video content
+- **Model Selection**: Support for multiple Ollama models
+- **Background Processing**: Non-blocking transcript retrieval
+
+## Final System Architecture 
+
+### Component Integration 
+
+#### Web Interface (Gradio) 
+- **Multi-tab Interface**: Separate tabs for different functionalities 
+- **Real-time Updates**: Live status updates during processing 
+- **Interactive Elements**: File uploads, dropdowns, and chat interfaces 
+
+#### Backend Services 
+- **Ollama Server**: Local LLM serving with API endpoints 
+- **Pinecone Cloud**: Managed vector database service 
+- **SQLite Database**: Local structured data processing 
+
+#### Data Flow Architecture 
+``` markdown 
+User Query → Router Agent → Specialized Agent → Retrieval → LLM → Response 
+↓ 
+Context Management → Citation Generation → Response Formatting → UI Display 
+``` 
+
+### Future Development Roadmap 
+
+1. **Advanced Reasoning**: Integration of chain-of-thought prompting 
+2. **Multimodal Capabilities**: Enhanced processing of images and charts from documents 
+3. **Real-time Learning**: Continuous model updating with user feedback 
+4. **Advanced Analytics**: Comprehensive usage analytics and optimization insights 
+
+## Key Achievements
+
+The implemented multi-agent RAG system successfully demonstrates the integration of retrieval-augmented 
+generation techniques with specialized domain knowledge. The system's key achievements include:
+
+1. **Multi-modal Data Processing**: 
+
+     Robust handling of diverse data types including:
+
+   - Financial documents (SEC filings)
+   - Video content (YouTube transcripts)
+   - Structured data (CSV files)
+
+2. **Intelligent Agent System**: 
+
+     Effective implementation of specialized agents for:
+
+   - Company-specific financial analysis (EnerSys, Apple, NVIDIA)
+   - Video content discovery and analysis
+   - General knowledge retrieval
+   - Structured data querying
+
+3. **Technical Implementation**: 
+
+     Successful deployment of core components:
+
+   - Document processing with page preservation
+   - Vector-based semantic search
+   - Context-aware response generation
+   - Accurate source attribution
+
+4. **User Interface**: 
+
+     Intuitive Gradio-based interface with:
+
+   - Multi-tab design for different functionalities
+   - Real-time processing feedback
+   - Interactive query capabilities
+   - Visual citation system
+
+The system demonstrates practical application of RAG techniques in a production environment, 
+providing accurate and contextual responses across multiple domains while maintaining reasonable 
+response times and user-friendly interaction.
+
+### Future Development Roadmap 
+
+1. **Advanced Reasoning**: Integration of chain-of-thought prompting 
+2. **Multimodal Capabilities**: Processing images and charts from documents 
+3. **Model Fine-tuning**: Potential for fine-tuning models on domain-specific data
+4. **Performance Monitoring**: Implementation of response quality metrics and system performance tracking

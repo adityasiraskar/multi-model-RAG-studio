@@ -1,0 +1,188 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="headerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="docGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4facfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00f2fe;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="ytGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#fa709a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fee140;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="sqlGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#a8edea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fed6e3;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#f8fafc"/>
+  
+  <!-- Title -->
+  <rect x="50" y="20" width="1100" height="60" rx="15" fill="url(#headerGrad)" filter="url(#shadow)"/>
+  <text x="600" y="55" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="white">RAG System Architecture - Multi-Modal AI Assistant</text>
+  
+  <!-- Document QA Workflow -->
+  <g id="docWorkflow">
+    <rect x="50" y="100" width="1100" height="200" rx="10" fill="url(#docGrad)" opacity="0.1" stroke="url(#docGrad)" stroke-width="2"/>
+    <text x="70" y="125" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#1e40af">📄 Document QA Workflow</text>
+    
+    <!-- PDF Upload -->
+    <rect x="80" y="140" width="120" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="140" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">User Upload</text>
+    <text x="140" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">PDF</text>
+    
+    <!-- Process & Chunk -->
+    <rect x="240" y="140" width="120" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="300" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">Process &</text>
+    <text x="300" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">Chunk</text>
+    
+    <!-- Generate Embeddings -->
+    <rect x="400" y="140" width="120" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="460" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">Generate</text>
+    <text x="460" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">Embeddings</text>
+    
+    <!-- Store in Pinecone -->
+    <rect x="560" y="140" width="120" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="620" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">Store in</text>
+    <text x="620" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">Pinecone</text>
+    
+    <!-- Query Process -->
+    <rect x="80" y="220" width="100" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="130" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">User</text>
+    <text x="130" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">Query</text>
+    
+    <rect x="220" y="220" width="100" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="270" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">Semantic</text>
+    <text x="270" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">Search</text>
+    
+    <rect x="360" y="220" width="100" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="410" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">Retrieve</text>
+    <text x="410" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">Chunks</text>
+    
+    <rect x="500" y="220" width="100" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="550" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">Generate</text>
+    <text x="550" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">Answer</text>
+    
+    <rect x="640" y="220" width="100" height="60" rx="8" fill="white" stroke="#1e40af" stroke-width="2" filter="url(#shadow)"/>
+    <text x="690" y="245" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#1e40af">Display with</text>
+    <text x="690" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#1e40af">Citations</text>
+    
+    <!-- Arrows for Document Workflow -->
+    <path d="M200 170 L230 170" stroke="#1e40af" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M360 170 L390 170" stroke="#1e40af" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M520 170 L550 170" stroke="#1e40af" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M620 200 L620 210 L130 210 L130 220" stroke="#1e40af" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M180 250 L210 250" stroke="#1e40af" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M320 250 L350 250" stroke="#1e40af" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M460 250 L490 250" stroke="#1e40af" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M600 250 L630 250" stroke="#1e40af" stroke-width="2" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- YouTube QA Workflow -->
+  <g id="ytWorkflow">
+    <rect x="50" y="320" width="1100" height="150" rx="10" fill="url(#ytGrad)" opacity="0.1" stroke="url(#ytGrad)" stroke-width="2"/>
+    <text x="70" y="345" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#dc2626">🎥 YouTube QA Workflow</text>
+    
+    <rect x="80" y="360" width="120" height="60" rx="8" fill="white" stroke="#dc2626" stroke-width="2" filter="url(#shadow)"/>
+    <text x="140" y="385" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#dc2626">YouTube</text>
+    <text x="140" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#dc2626">URL</text>
+    
+    <rect x="240" y="360" width="120" height="60" rx="8" fill="white" stroke="#dc2626" stroke-width="2" filter="url(#shadow)"/>
+    <text x="300" y="385" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#dc2626">Extract</text>
+    <text x="300" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#dc2626">Transcript</text>
+    
+    <rect x="400" y="360" width="120" height="60" rx="8" fill="white" stroke="#dc2626" stroke-width="2" filter="url(#shadow)"/>
+    <text x="460" y="385" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#dc2626">Store</text>
+    <text x="460" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#dc2626">Locally</text>
+    
+    <rect x="560" y="360" width="120" height="60" rx="8" fill="white" stroke="#dc2626" stroke-width="2" filter="url(#shadow)"/>
+    <text x="620" y="385" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#dc2626">Process with</text>
+    <text x="620" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#dc2626">Ollama</text>
+    
+    <rect x="720" y="360" width="120" height="60" rx="8" fill="white" stroke="#dc2626" stroke-width="2" filter="url(#shadow)"/>
+    <text x="780" y="385" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#dc2626">Generate</text>
+    <text x="780" y="400" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#dc2626">Responses</text>
+    
+    <!-- Arrows for YouTube Workflow -->
+    <path d="M200 390 L230 390" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M360 390 L390 390" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M520 390 L550 390" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M680 390 L710 390" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- SQL Agent Workflow -->
+  <g id="sqlWorkflow">
+    <rect x="50" y="490" width="1100" height="150" rx="10" fill="url(#sqlGrad)" opacity="0.1" stroke="url(#sqlGrad)" stroke-width="2"/>
+    <text x="70" y="515" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#059669">📊 SQL Agent Workflow</text>
+    
+    <rect x="80" y="530" width="100" height="60" rx="8" fill="white" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
+    <text x="130" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">CSV</text>
+    <text x="130" y="570" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#059669">Upload</text>
+    
+    <rect x="220" y="530" width="100" height="60" rx="8" fill="white" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
+    <text x="270" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Create</text>
+    <text x="270" y="570" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#059669">SQLite DB</text>
+    
+    <rect x="360" y="530" width="120" height="60" rx="8" fill="white" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
+    <text x="420" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Natural Language</text>
+    <text x="420" y="570" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#059669">Query</text>
+    
+    <rect x="520" y="530" width="100" height="60" rx="8" fill="white" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
+    <text x="570" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Generate</text>
+    <text x="570" y="570" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#059669">SQL</text>
+    
+    <rect x="660" y="530" width="100" height="60" rx="8" fill="white" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
+    <text x="710" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Execute</text>
+    <text x="710" y="570" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#059669">Query</text>
+    
+    <rect x="800" y="530" width="100" height="60" rx="8" fill="white" stroke="#059669" stroke-width="2" filter="url(#shadow)"/>
+    <text x="850" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#059669">Return</text>
+    <text x="850" y="570" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#059669">Results</text>
+    
+    <!-- Arrows for SQL Workflow -->
+    <path d="M180 560 L210 560" stroke="#059669" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M320 560 L350 560" stroke="#059669" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M480 560 L510 560" stroke="#059669" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M620 560 L650 560" stroke="#059669" stroke-width="2" marker-end="url(#arrowhead)"/>
+    <path d="M760 560 L790 560" stroke="#059669" stroke-width="2" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- Central Integration Hub -->
+  <rect x="920" y="250" width="200" height="200" rx="15" fill="white" stroke="#6366f1" stroke-width="3" filter="url(#shadow)"/>
+  <text x="1020" y="280" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#6366f1">🤖 AI Assistant</text>
+  <text x="1020" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#6366f1">Integration Hub</text>
+  
+  <text x="1020" y="330" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Unified Interface</text>
+  <text x="1020" y="350" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Context Management</text>
+  <text x="1020" y="370" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Response Generation</text>
+  <text x="1020" y="390" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Multi-Modal Processing</text>
+  <text x="1020" y="410" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#374151">• Smart Routing</text>
+  
+  <!-- Connecting lines to hub -->
+  <path d="M740 200 L920 300" stroke="#6366f1" stroke-width="2" stroke-dasharray="5,5"/>
+  <path d="M840 390 L920 350" stroke="#6366f1" stroke-width="2" stroke-dasharray="5,5"/>
+  <path d="M900 560 L1020 450" stroke="#6366f1" stroke-width="2" stroke-dasharray="5,5"/>
+  
+  <!-- Key Features Box -->
+  <rect x="50" y="660" width="1100" height="120" rx="10" fill="#f1f5f9" stroke="#64748b" stroke-width="1"/>
+  <text x="70" y="685" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#1e293b">🔧 System Features</text>
+  
+  <text x="80" y="710" font-family="Arial, sans-serif" font-size="13" fill="#334155">• <tspan font-weight="bold">Document Processing:</tspan> PDF ingestion, chunking, embedding generation, vector storage in Pinecone</text>
+  <text x="80" y="730" font-family="Arial, sans-serif" font-size="13" fill="#334155">• <tspan font-weight="bold">Video Analysis:</tspan> YouTube transcript extraction, local storage, Ollama-powered processing</text>
+  <text x="80" y="750" font-family="Arial, sans-serif" font-size="13" fill="#334155">• <tspan font-weight="bold">Data Analytics:</tspan> CSV to SQLite conversion, natural language to SQL translation, query execution</text>
+  <text x="80" y="770" font-family="Arial, sans-serif" font-size="13" fill="#334155">• <tspan font-weight="bold">Smart Integration:</tspan> Unified interface, context-aware responses, citation tracking, multi-modal AI assistance</text>
+  
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#374151"/>
+    </marker>
+  </defs>
+</svg>

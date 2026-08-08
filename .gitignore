@@ -1,0 +1,37 @@
+.env
+/.luarc.json
+
+# Ignore Quarto output
+reports/final_project_report/_output/
+
+# Ignore the embedding model
+/llm_pipe/Ingestion_Retrieval/models/embedding_model
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.db
+*.sqlite3
+
+# Virtual environments
+venv/
+env/
+*.env/
+
+# VS Code settings folder
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# IDE-specific files
+.idea/
