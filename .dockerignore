@@ -1,0 +1,16 @@
+.env
+.env.*
+.venv/
+.venv_broken/
+__pycache__/
+*.pyc
+.git/
+.gitignore
+baselines/
+models/
+page_images/
+jsons/
+transcript_cache.json
+*.db
+*.sqlite3
+reports/

@@ -1,0 +1,1 @@
+"""Evaluation suite for the shared RAG pipeline."""

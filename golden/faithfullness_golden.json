@@ -1,0 +1,219 @@
+[
+  {
+    "id": "f001",
+    "query": "How is Amazon organized into reportable business segments, and what does each segment primarily include?",
+    "ideal_context": [
+      "We have organized our operations into three segments: North America, International, and Amazon Web Services (AWS). These segments reflect the way the Company evaluates its business performance and manages its operations.",
+      "The North America segment primarily consists of amounts earned from retail sales of consumer products and subscriptions through North America-focused online and physical stores.",
+      "The International segment primarily consists of amounts earned from retail sales of consumer products and subscriptions through internationally-focused online stores.",
+      "The AWS segment consists of amounts earned from global sales of compute, storage, database, and other services for start-ups, enterprises, government agencies, and academic institutions."
+    ],
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+  {
+    "id": "f002",
+    "query": "What were Amazon's net sales for North America, International, and AWS in 2022, and what percentage of consolidated net sales did each represent?",
+    "ideal_context": [
+      "In 2022, Amazon reported North America net sales of $315.880 billion, International net sales of $118.007 billion, and AWS net sales of $80.096 billion.",
+      "Consolidated net sales were $513.983 billion in 2022.",
+      "The 2022 net sales mix was 61% North America, 23% International, and 16% AWS."
+    ],
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+  {
+    "id": "f003",
+    "query": "What does Amazon include in its net sales from service sales?",
+    "ideal_context": [
+      "Amazon's net sales include product and service sales.",
+      "Product sales represent revenue from the sale of products and related shipping fees and digital media content where Amazon records revenue gross.",
+      "Service sales primarily represent third-party seller fees, including commissions and related fulfillment and shipping fees, AWS sales, advertising services, Amazon Prime membership fees, and certain digital content subscriptions."
+    ],
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+  {
+    "id": "f004",
+    "query": "What are the main components of Amazon's fulfillment costs?",
+    "ideal_context": [
+      "Fulfillment costs primarily consist of costs incurred in operating and staffing North America and International fulfillment centers, physical stores, and customer service centers.",
+      "They include facilities and equipment expenses such as depreciation and amortization and rent; costs attributable to buying, receiving, inspecting, and warehousing inventories; and picking, packaging, and preparing customer orders for shipment.",
+      "Fulfillment costs also include payment processing and related transaction costs, responding to customer inquiries, supply chain management for manufactured electronic devices, and amounts paid to third parties that assist in fulfillment and customer service operations."
+    ],
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+  {
+    "id": "f005",
+    "query": "Why did Amazon's cost of sales increase in 2022, and how did foreign exchange affect it?",
+    "ideal_context": [
+      "Amazon's cost of sales increased in absolute dollars in 2022 primarily due to increased shipping and product costs resulting from increased sales and increases in investments in the fulfillment network, transportation costs, and wage rates and incentives.",
+      "Changes in foreign exchange rates reduced cost of sales by $10.8 billion in 2022.",
+      "Shipping costs were $76.7 billion in 2021 and $83.5 billion in 2022."
+    ],
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+
+  {
+    "id": "f006",
+    "query": "What geographic regions constitute Apple's reportable segments in 2021?",
+    "ideal_context": [
+      "Apple manages its business primarily on a geographic basis.",
+      "Its reportable segments consist of the Americas, Europe, Greater China, Japan, and Rest of Asia Pacific.",
+      "Americas includes both North and South America.",
+      "Europe includes European countries, as well as India, the Middle East and Africa.",
+      "Greater China includes China mainland, Hong Kong and Taiwan.",
+      "Rest of Asia Pacific includes Australia and those Asian countries not included in Apple's other reportable segments."
+    ],
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+  {
+    "id": "f007",
+    "query": "What were Apple's 2021 net sales by geographic reportable segment?",
+    "ideal_context": [
+      "Apple's 2021 net sales by reportable segment were: Americas $153.306 billion, Europe $89.307 billion, Greater China $68.366 billion, Japan $28.482 billion, and Rest of Asia Pacific $26.356 billion.",
+      "Total net sales were $365.817 billion."
+    ],
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+  {
+    "id": "f008",
+    "query": "What products and services were included in Apple's disaggregated revenue categories in 2021?",
+    "ideal_context": [
+      "Apple's 2021 net sales were disaggregated into iPhone, Mac, iPad, Wearables, Home and Accessories, and Services.",
+      "2021 net sales were $191.973 billion for iPhone, $35.190 billion for Mac, $31.862 billion for iPad, $38.367 billion for Wearables, Home and Accessories, and $68.425 billion for Services.",
+      "Wearables, Home and Accessories includes AirPods, Apple TV, Apple Watch, Beats products, HomePod, iPod touch and accessories.",
+      "Services include advertising, AppleCare, cloud, digital content, payment and other services."
+    ],
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+  {
+    "id": "f009",
+    "query": "How did Apple's Services gross margin compare with its Products gross margin in 2021?",
+    "ideal_context": [
+      "In 2021, Apple's Products gross margin was $105.126 billion and its Services gross margin was $47.710 billion.",
+      "Products had a gross margin percentage of 35.3%, while Services had a gross margin percentage of 69.7%.",
+      "Apple's total gross margin was $152.836 billion, representing a total gross margin percentage of 41.8%."
+    ],
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+  {
+    "id": "f010",
+    "query": "How does Apple evaluate the performance of its reportable geographic segments?",
+    "ideal_context": [
+      "Apple evaluates the performance of its reportable segments based on net sales and operating income.",
+      "Net sales for geographic segments are generally based on the location of customers and sales through Apple's retail stores located in those geographic locations.",
+      "Operating income for each segment includes net sales to third parties, related cost of sales and operating expenses directly attributable to the segment.",
+      "Segment operating income excludes certain corporate expenses, including research and development, corporate marketing expenses, certain share-based compensation expenses, income taxes, and various nonrecurring charges."
+    ],
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+
+  {
+    "id": "f011",
+    "query": "What are NVIDIA's two reportable business segments, and what businesses are included in each?",
+    "ideal_context": [
+      "NVIDIA reports its business results in two segments: Compute & Networking and Graphics.",
+      "Compute & Networking includes the Data Center accelerated computing platform, networking, automotive AI Cockpit, autonomous driving development agreements, autonomous vehicle solutions, electric vehicle computing platforms, Jetson for robotics and other embedded platforms, NVIDIA AI Enterprise and other software, and cryptocurrency mining processors.",
+      "Graphics includes GeForce GPUs for gaming and PCs, GeForce NOW and related infrastructure, gaming platform solutions, Quadro/NVIDIA RTX GPUs for enterprise workstation graphics, vGPU software for cloud-based visual and virtual computing, automotive infotainment platforms, and Omniverse Enterprise software."
+    ],
+    "source_pdf": "Nvidia.pdf"
+  },
+  {
+    "id": "f012",
+    "query": "Which four major markets does NVIDIA identify as areas where its computing platforms are critical?",
+    "ideal_context": [
+      "NVIDIA specializes in markets where its computing platforms can provide tremendous acceleration for applications.",
+      "Its platforms incorporate processors, interconnects, software, algorithms, systems, and services.",
+      "NVIDIA identifies four large markets where its expertise is critical: Data Center, Gaming, Professional Visualization, and Automotive."
+    ],
+    "source_pdf": "Nvidia.pdf"
+  },
+  {
+    "id": "f013",
+    "query": "How did NVIDIA's major market revenues perform in fiscal 2023?",
+    "ideal_context": [
+      "Data Center revenue for fiscal 2023 was $15.01 billion, up 41% from fiscal 2022.",
+      "Gaming revenue was $9.07 billion, down 27% from fiscal 2022.",
+      "Professional Visualization revenue was $1.54 billion, down 27% from fiscal 2022.",
+      "Automotive revenue grew 60% from fiscal 2022 to $903 million."
+    ],
+    "source_pdf": "Nvidia.pdf"
+  },
+  {
+    "id": "f014",
+    "query": "Why did NVIDIA's Gaming revenue decline in fiscal 2023?",
+    "ideal_context": [
+      "Gaming revenue for fiscal year 2023 was $9.07 billion, down 27% from fiscal year 2022.",
+      "Gaming results were influenced by the rapid change in economic conditions causing excess inventory with NVIDIA's channel partners.",
+      "NVIDIA introduced pricing programs for channel partners and began undershipping GPU supply to partners to lower inventory in the channel.",
+      "By the end of fiscal 2023, NVIDIA reported meaningful progress in establishing lower inventory levels with its channel partners."
+    ],
+    "source_pdf": "Nvidia.pdf"
+  },
+  {
+    "id": "f015",
+    "query": "What were NVIDIA's fiscal 2023 revenue, gross margin, operating expenses, operating income, and net income?",
+    "ideal_context": [
+      "For fiscal year 2023, NVIDIA reported revenue of $26.974 billion, compared with $26.914 billion in fiscal 2022.",
+      "Gross margin was 56.9%, down from 64.9%.",
+      "Operating expenses were $11.132 billion, up 50%.",
+      "Income from operations was $4.224 billion, down 58%.",
+      "Net income was $4.368 billion, down 55%."
+    ],
+    "source_pdf": "Nvidia.pdf"
+  },
+
+  {
+    "id": "f016",
+    "query": "What are Tesla's two reportable segments, and what does the automotive segment include?",
+    "ideal_context": [
+      "Tesla operates as two reportable segments: automotive and energy generation and storage.",
+      "The automotive segment includes the design, development, manufacturing, sales and leasing of high-performance fully electric vehicles as well as sales of automotive regulatory credits.",
+      "The automotive segment also includes services and other, which consists of non-warranty after-sales vehicle services and parts, sales of used vehicles, retail merchandise, paid Supercharging and vehicle insurance revenue.",
+      "The energy generation and storage segment includes the design, manufacture, installation, sales and leasing of solar energy generation and energy storage products and related services and sales of solar energy systems incentives."
+    ],
+    "source_pdf": "Tesla.pdf"
+  },
+  {
+    "id": "f017",
+    "query": "What were Tesla's total revenues and operating cash flow in 2022?",
+    "ideal_context": [
+      "Tesla recognized total revenues of $81.462 billion in 2022, an increase of $27.639 billion compared with 2021.",
+      "Net income attributable to common stockholders was $12.56 billion in 2022.",
+      "Tesla ended 2022 with $22.19 billion in cash and cash equivalents and investments.",
+      "Cash flows provided by operating activities were $14.72 billion in 2022, compared with $11.50 billion in 2021.",
+      "Capital expenditures amounted to $7.16 billion in 2022."
+    ],
+    "source_pdf": "Tesla.pdf"
+  },
+  {
+    "id": "f018",
+    "query": "What were Tesla's 2022 revenues from automotive and energy generation and storage?",
+    "ideal_context": [
+      "Tesla's total automotive and services and other segment revenue was $77.553 billion in 2022.",
+      "Energy generation and storage segment revenue was $3.909 billion in 2022.",
+      "Total revenues were $81.462 billion in 2022."
+    ],
+    "source_pdf": "Tesla.pdf"
+  },
+  {
+    "id": "f019",
+    "query": "Why did Tesla's automotive sales revenue increase in 2022 compared with 2021?",
+    "ideal_context": [
+      "Automotive sales revenue increased $23.09 billion, or 52%, in 2022 compared with 2021.",
+      "The increase was primarily due to an increase of 347,024 Model 3 and Model Y deliveries and an increase of 38,183 Model S and Model X deliveries year over year.",
+      "The increase was supported by production ramping of Model Y at Gigafactory Shanghai and Fremont, as well as the start of production at Gigafactory Berlin-Brandenburg and Gigafactory Texas.",
+      "Tesla also recognized $324 million in revenue related to the general Full Self-Driving feature release in North America during the fourth quarter of 2022."
+    ],
+    "source_pdf": "Tesla.pdf"
+  },
+  {
+    "id": "f020",
+    "query": "What products make up Tesla's energy generation and storage business, and what were its 2022 deployment figures?",
+    "ideal_context": [
+      "Tesla's energy generation and storage business includes energy storage products such as Powerwall and Megapack, as well as solar energy offerings including Solar Roof and retrofit solar energy systems.",
+      "Powerwall is designed to store energy at a home or small commercial facility.",
+      "Megapack is an energy storage solution for commercial, industrial, utility and energy generation customers.",
+      "In 2022, Tesla deployed 6.5 GWh of energy storage products and 348 megawatts of solar energy systems."
+    ],
+    "source_pdf": "Tesla.pdf"
+  }
+]

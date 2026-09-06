@@ -12,6 +12,7 @@ from llm_pipe.Ingestion_Retrieval.pinecone_retrieval import init_pinecone_and_em
 from llm_pipe.Ingestion_Retrieval.youtube_qa_agent import handle_url_submit, answer_question, summarize_transcript
 from llm_pipe.sql_agent import process_query_sql, display_columns, refresh_models, get_available_models
 from llm_pipe.multi_agent import invoke
+from llm_pipe.document_qa import generate_answer_with_openai
 from config import app_config
 
 
@@ -54,14 +55,20 @@ def check_ollama_available():
         print(f"Failed to connect to Ollama: {e}")
         return False
 
-# Initialize Pinecone and embedding models using the imported function
-try:
-    pc, index, embeddings_model = init_pinecone_and_embeddings()
-except Exception as exc:
-    print(f"[WARN] Pinecone initialization failed: {exc}")
-    pc = index = embeddings_model = None
+pc = index = embeddings_model = None
+ollama_available = False
 
-ollama_available = check_ollama_available()
+
+def _ensure_document_backend():
+    global pc, index, embeddings_model
+    if index is not None and embeddings_model is not None:
+        return True
+    try:
+        pc, index, embeddings_model = init_pinecone_and_embeddings()
+    except Exception as exc:
+        print(f"[WARN] Pinecone initialization failed: {exc}")
+        pc = index = embeddings_model = None
+    return index is not None and embeddings_model is not None
 
 def format_documents_with_page_info(results):
     """
@@ -90,60 +97,6 @@ def format_documents_with_page_info(results):
     
     return formatted_text or "No relevant information found."
 
-def generate_answer_with_ollama(context: str, query: str, doc_page_mapping: Dict) -> str:
-    """Generate an answer using Ollama's Phi-3 model based on context and query,
-    with instructions to include page references."""
-    
-    # Format the doc-page mapping for inclusion in the prompt
-    page_references = ""
-    for doc_id, pages in doc_page_mapping.items():
-        page_references += f"- Document '{doc_id}' has relevant information on pages: {', '.join(pages)}\n"
-    
-    prompt = f"""You are a helpful assistant that answers questions about financial reports and SEC filings.
-Answer the user's question based solely on the provided context.
-
-IMPORTANT INSTRUCTIONS:
-1. Always cite the specific page numbers when referencing information in your answer.
-2. Format page citations as [Page X] within your answer text.
-3. If information comes from multiple pages, cite each relevant page.
-4. If you don't know the answer based on the context, just say so.
-5. Don't make up information.
-
-The following pages contain relevant information for this query:
-{page_references}
-
-Context:
-{context}
-
-User Question:
-{query}
-
-Answer (remember to cite specific page numbers in your response):"""
-    
-    # Make API call to Ollama
-    try:
-        response = requests.post(
-            f"{OLLAMA_API_BASE}/generate",
-            json={
-                "model": OLLAMA_MODEL,
-                "prompt": prompt,
-                "stream": False,
-                "options": {
-                    "temperature": 0.7,
-                    "top_p": 0.9,
-                    "num_predict": 512
-                }
-            },
-            timeout=180  # Increase timeout to 180 seconds
-        )
-        
-        if response.status_code == 200:
-            return response.json().get("response", "Error generating response.")
-        else:
-            return f"Error: Ollama returned status code {response.status_code}"
-    except Exception as e:
-        return f"Error connecting to Ollama: {str(e)}"
-
 # Function for citation
 JSON_DIR = os.path.join(os.path.dirname(__file__), "..", "jsons")
 def get_all_cited_images(doc_page_mapping):
@@ -166,9 +119,9 @@ def get_all_cited_images(doc_page_mapping):
 def process_query_and_generate(company: str, query: str) -> Tuple[str, Dict[str, List[str]], List[str]]:
     """Process a query for a specific company and generate answer with page references."""
     if not query.strip():
-        return "Please enter a query."
+        return "Please enter a query.", {}, []
     
-    if index is None or embeddings_model is None:
+    if not _ensure_document_backend():
         return "Document search is unavailable because the Pinecone index could not be initialized.", {}, []
 
     # Use the imported process_query function to get search results
@@ -185,7 +138,7 @@ def process_query_and_generate(company: str, query: str) -> Tuple[str, Dict[str,
         answer = "I couldn't find relevant information to answer your question in the selected document."
     else:
         try:
-            answer = generate_answer_with_ollama(context, query, doc_page_mapping)
+            answer = generate_answer_with_openai(context, query, doc_page_mapping)
             
             # Post-process answer to highlight page citations
             answer = re.sub(r'\[Page \d+\]', '', answer).strip()
@@ -202,6 +155,8 @@ def process_query_and_generate(company: str, query: str) -> Tuple[str, Dict[str,
 # Gradio GUI
 def create_interface():
     """Create unified Gradio interface with two tabs: Document QA + YouTube QA."""
+    global ollama_available
+    ollama_available = check_ollama_available()
     # Create list of PDF options for dropdown
     pdf_options = []
     for company, pdfs in COMPANY_PDF_MAPPING.items():
@@ -213,7 +168,7 @@ def create_interface():
             # === Tab 1: Multi-Agent Assistant ===
             with gr.Tab("🤖 Multi-Agent Assistant"):
                 gr.Markdown("#  Multi-Agent Assistant")
-                gr.Markdown("Ask questions about EnerSys, Apple, NVIDIA, search for YouTube videos, or get general information.")
+                gr.Markdown("Ask questions about Amazon, Apple, NVIDIA, Tesla, search for YouTube videos, or get general information.")
                 
                 # Chat interface
                 chat_history = gr.Chatbot(
@@ -247,8 +202,8 @@ def create_interface():
                 gr.Markdown("### Example Questions:")
                 gr.Markdown("""
                 **Company Specific:**
-                - "What was EnerSys' quarterly dividend in fiscal year 2023?"
-                - "What was the effective income tax rate in fiscal 2023 of EnerSys?"
+                - "What were Amazon's North America, International, and AWS net sales in 2022?"
+                - "What was Tesla's total revenue in 2022?"
                 - "Tell me about NVIDIA's AI business growth"
                 - "Apple's reportable segments consist of which countries?"
                 
@@ -504,4 +459,8 @@ def create_interface():
 # Launch the Gradio app
 if __name__ == "__main__":
     demo = create_interface()
-    demo.launch(share=True)
+    demo.launch(
+        server_name="0.0.0.0",
+        server_port=int(os.getenv("PORT", "7860")),
+        share=False,
+    )

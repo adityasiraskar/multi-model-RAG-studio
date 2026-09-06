@@ -1,33 +1,46 @@
+import importlib
 import os
-from dotenv import load_dotenv
+
 import requests
+from dotenv import load_dotenv
+from langchain.tools import tool
 
 try:
-    from youtube_search import YoutubeSearch
+    YoutubeSearch = importlib.import_module("youtube_search").YoutubeSearch
 except ImportError:
     YoutubeSearch = None
 
-from langchain.tools import tool
-from llm_pipe.Ingestion_Retrieval.pinecone_retrieval import process_query, init_pinecone_and_embeddings
+from config import app_config
+from llm_pipe.Ingestion_Retrieval.pinecone_retrieval import (
+    init_pinecone_and_embeddings,
+    process_query,
+)
 
-# Load environment variables
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
 load_dotenv()
 
-# Initialize Pinecone and embeddings
-try:
-    pc, index, embeddings_model = init_pinecone_and_embeddings()
-except Exception as exc:
-    print(f"[WARN] Pinecone initialization failed: {exc}")
-    pc = index = embeddings_model = None
+pc = index = embeddings_model = None
 
-# Configure Ollama API
-OLLAMA_API_BASE = "http://localhost:11434/api"
-OLLAMA_MODEL = "phi3:mini"
+
+def _ensure_document_backend():
+    global pc, index, embeddings_model
+    if index is not None and embeddings_model is not None:
+        return True
+    try:
+        pc, index, embeddings_model = init_pinecone_and_embeddings()
+    except Exception as exc:
+        print(f"[WARN] Pinecone initialization failed: {exc}")
+        pc = index = embeddings_model = None
+    return index is not None and embeddings_model is not None
+
+
+OLLAMA_API_BASE = app_config.OLLAMA_API_BASE
+OLLAMA_MODEL = app_config.OLLAMA_MODEL
+
 
 def query_ollama(prompt: str, model: str = OLLAMA_MODEL) -> str:
-    """Helper function to query Ollama API"""
+    """Helper function to query Ollama API."""
     try:
         response = requests.post(
             f"{OLLAMA_API_BASE}/generate",
@@ -35,20 +48,15 @@ def query_ollama(prompt: str, model: str = OLLAMA_MODEL) -> str:
                 "model": model,
                 "prompt": prompt,
                 "stream": False,
-                "options": {
-                    "temperature": 0.1,
-                    "top_p": 0.9,
-                    "num_predict": 512
-                }
+                "options": {"temperature": 0.1, "top_p": 0.9, "num_predict": 512},
             },
-            timeout=180
+            timeout=180,
         )
         if response.status_code == 200:
             return response.json().get("response", "Error generating response.")
-        else:
-            return f"Error: Ollama returned status code {response.status_code}"
-    except Exception as e:
-        return f"Error connecting to Ollama: {str(e)}"
+        return f"Error: Ollama returned status code {response.status_code}"
+    except Exception as exc:
+        return f"Error connecting to Ollama: {exc}"
 
 def format_video_info(videos):
     base_url = "https://www.youtube.com"
@@ -70,55 +78,13 @@ def format_video_info(videos):
     return "\n".join(result)
 
 @tool
-def get_answer_enesys(question: str) -> str:
-    """
-    Get answers to questions about EnerSys from their 10-K filings.
-    Use this tool when the question is specifically about EnerSys company, its financials, or operations.
-    """
-    try:
-        if index is None or embeddings_model is None:
-            return "Document search is unavailable because Pinecone could not be initialized."
-        results = process_query(index, embeddings_model, "enersys", question)
-        if not results.get("results"):
-            return "I couldn't find relevant information about EnerSys to answer your question. The documents may not contain the specific information you're looking for."
-        
-        # Format the context from results
-        context = ""
-        for doc_id, pages in results.get("results", {}).items():
-            for page_num, matches in pages.items():
-                for match in matches:
-                    context += f"[Page {page_num}] {match.get('text', '').strip()}\n\n"
-        
-        if not context.strip():
-            return "No relevant context found in EnerSys documents for your question."
-        
-        # Generate answer using the context
-        prompt = f"""Based on the following context from EnerSys 10-K filings, answer the question correctly and concisely. 
-        Do not answer in just one word. Provide a clear and concise answer.
-Do not mention that you're using context or documents. Just provide the answer.
-If the context doesn't contain the specific information needed, say that the information is not available in the documents.
-
-Context:
-{context}
-
-Question: {question}
-
-Answer:"""
-        
-        response = query_ollama(prompt)
-        return response.strip()
-        
-    except Exception as e:
-        return f"Error retrieving information about EnerSys: {str(e)}"
-
-@tool
 def get_answer_apple(question: str) -> str:
     """
     Get answers to questions about Apple from their 10-K filings.
     Use this tool when the question is specifically about Apple company, its financials, or operations.
     """
     try:
-        if index is None or embeddings_model is None:
+        if not _ensure_document_backend():
             return "Document search is unavailable because Pinecone could not be initialized."
         results = process_query(index, embeddings_model, "apple", question)
         if not results.get("results"):
@@ -160,7 +126,7 @@ def get_answer_nvidia(question: str) -> str:
     Use this tool when the question is specifically about NVIDIA company, its financials, or operations.
     """
     try:
-        if index is None or embeddings_model is None:
+        if not _ensure_document_backend():
             return "Document search is unavailable because Pinecone could not be initialized."
         results = process_query(index, embeddings_model, "nvidia", question)
         if not results.get("results"):
@@ -195,6 +161,37 @@ Answer:"""
     except Exception as e:
         return f"Error retrieving information about NVIDIA: {str(e)}"
 
+
+@tool
+def get_answer_document(question: str) -> str:
+    """Answer questions about any company configured in the document corpus."""
+    lowered = question.lower()
+    company = next(
+        (name for name in app_config.COMPANY_PDF_MAPPING if name in lowered),
+        None,
+    )
+    if company is None:
+        return "Please specify a company covered by the document corpus."
+    if not _ensure_document_backend():
+        return "Document search is unavailable because Pinecone could not be initialized."
+
+    try:
+        results = process_query(index, embeddings_model, company, question)
+        if not results.get("results"):
+            return f"I couldn't find relevant information about {company} in the document corpus."
+        context = "\n\n".join(
+            f"[Page {page_num}] {match.get('text', '').strip()}"
+            for pages in results["results"].values()
+            for page_num, matches in pages.items()
+            for match in matches
+        )
+        return query_ollama(
+            f"Based only on this {company} annual-report context, answer the question concisely.\n\n"
+            f"Context:\n{context}\n\nQuestion: {question}\n\nAnswer:"
+        ).strip()
+    except Exception as exc:
+        return f"Error retrieving information about {company}: {exc}"
+
 @tool
 def youtube_url(question: str) -> str:
     """
@@ -215,7 +212,7 @@ def youtube_url(question: str) -> str:
 def web_search(question: str) -> str:
     """
     Search the web using Tavily API for additional context.
-    Use this tool when the question requires current or external informations other than enersys, tesla , or nvidia.
+    Use this tool when the question requires current or external information outside the four annual-report PDFs.
     You can also use this tool when user asks about general things.
     """
     tavily_api_key = os.getenv("TAVILY_API_KEY")
@@ -258,9 +255,9 @@ def web_search(question: str) -> str:
 
 # List of available tools
 agents = [
-    get_answer_enesys,
     get_answer_apple,
     get_answer_nvidia,
+    get_answer_document,
     youtube_url,
     web_search
 ]

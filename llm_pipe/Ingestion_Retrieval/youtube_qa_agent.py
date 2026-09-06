@@ -29,8 +29,11 @@ def extract_video_id(url):
 # Background transcript fetching
 def fetch_transcript(video_id):
     try:
-        transcript = YouTubeTranscriptApi.get_transcript(video_id)
-        full_text = " ".join([entry['text'] for entry in transcript])
+        transcript = YouTubeTranscriptApi().fetch(video_id)
+        full_text = " ".join(
+            entry.text if hasattr(entry, "text") else entry["text"]
+            for entry in transcript
+        )
         video_context[video_id] = full_text
         save_cache()
     except Exception as e:
@@ -57,7 +60,7 @@ def query_ollama(prompt, model="mistral"):
         ],
         "stream": False
     }
-    response = requests.post("http://localhost:11434/api/chat", json=payload)
+    response = requests.post("http://localhost:11434/api/chat", json=payload, timeout=180)
     response.raise_for_status()
     return response.json()["message"]["content"]
 

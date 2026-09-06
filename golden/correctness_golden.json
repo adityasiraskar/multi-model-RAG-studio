@@ -1,0 +1,125 @@
+[
+  {
+    "id": "C001",
+    "question": "What were Amazon's net sales for North America, International, and AWS in 2022, and what percentage of consolidated net sales did each segment represent?",
+    "ideal_answer": "In 2022, Amazon reported $315.880 billion in North America net sales, $118.007 billion in International net sales, and $80.096 billion in AWS net sales. Consolidated net sales were $513.983 billion. As a percentage of consolidated net sales, North America represented 61%, International 23%, and AWS 16%.",
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+  {
+    "id": "C002",
+    "question": "Why did Amazon's International net sales decline in 2022 while AWS sales increased?",
+    "ideal_answer": "International net sales decreased 8% in 2022 primarily because of changes in foreign currency exchange rates, partially offset by increased unit sales, including sales by third-party sellers, advertising sales, and subscription services. Foreign exchange changes reduced International net sales by $15.0 billion. AWS sales increased 29%, primarily reflecting increased customer usage, partially offset by pricing changes, primarily driven by long-term customer contracts.",
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+  {
+    "id": "C003",
+    "question": "What happened to Amazon's operating income by segment between 2021 and 2022?",
+    "ideal_answer": "Amazon's North America segment went from $7.271 billion of operating income in 2021 to a $2.847 billion operating loss in 2022. International's operating loss increased from $924 million in 2021 to $7.746 billion in 2022. AWS operating income increased from $18.532 billion to $22.841 billion. Consolidated operating income decreased from $24.879 billion in 2021 to $12.248 billion in 2022.",
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+  {
+    "id": "C004",
+    "question": "What were Amazon's major operating expense categories in 2022, and which one was the largest?",
+    "ideal_answer": "Amazon's 2022 operating expenses included cost of sales of $288.831 billion, fulfillment of $84.299 billion, technology and content of $73.213 billion, sales and marketing of $42.238 billion, general and administrative expenses of $11.891 billion, and other operating expense, net of $1.263 billion. Total operating expenses were $501.735 billion. Cost of sales was the largest category.",
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+  {
+    "id": "C005",
+    "question": "Why did Amazon's AWS operating income increase in 2022?",
+    "ideal_answer": "AWS operating income increased primarily because of increased sales and cost structure productivity, including a reduction in depreciation and amortization expense resulting from Amazon's change in the estimated useful lives of its servers and networking equipment. These benefits were partially offset by increased payroll and related expenses and spending on technology infrastructure, which were primarily driven by additional investments to support AWS business growth. Foreign exchange changes positively impacted AWS operating income by $1.4 billion in 2022.",
+    "source_pdf": "Amazon10k2022.pdf"
+  },
+
+  {
+    "id": "C006",
+    "question": "What are Apple's five reportable geographic segments, and which countries or regions are specifically included in each?",
+    "ideal_answer": "Apple's reportable segments are Americas, Europe, Greater China, Japan, and Rest of Asia Pacific. Americas includes North and South America. Europe includes European countries as well as India, the Middle East, and Africa. Greater China includes mainland China, Hong Kong, and Taiwan. Japan is the Japan geographic segment. Rest of Asia Pacific includes Australia and Asian countries not included in Apple's other reportable segments.",
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+  {
+    "id": "C007",
+    "question": "Which Apple geographic segment had the highest net sales in 2021, and what were the net sales of all five segments?",
+    "ideal_answer": "The Americas had the highest 2021 net sales at $153.306 billion. The five segments were: Americas $153.306 billion, Europe $89.307 billion, Greater China $68.366 billion, Japan $28.482 billion, and Rest of Asia Pacific $26.356 billion. Total net sales were $365.817 billion.",
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+  {
+    "id": "C008",
+    "question": "How did Apple's Products and Services gross margin percentages compare in 2021, and what were the corresponding gross margin amounts?",
+    "ideal_answer": "In 2021, Apple's Products gross margin was $105.126 billion with a gross margin percentage of 35.3%. Services gross margin was $47.710 billion with a gross margin percentage of 69.7%. Therefore, Services had a substantially higher gross margin percentage than Products. Apple's total gross margin was $152.836 billion, or 41.8% of net sales.",
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+  {
+    "id": "C009",
+    "question": "Why did Apple's Services gross margin percentage increase in 2021 compared with 2020?",
+    "ideal_answer": "Apple's Services gross margin percentage increased in 2021 primarily because of a different Services mix and improved leverage, partially offset by higher Services costs. Services gross margin itself increased primarily because of higher Services net sales and a different Services mix.",
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+  {
+    "id": "C010",
+    "question": "How does Apple determine and evaluate operating income for its geographic reportable segments?",
+    "ideal_answer": "Apple evaluates its reportable segments based on net sales and operating income. Geographic segment net sales are generally based on the location of customers and sales through Apple's retail stores in those locations. Segment operating income includes net sales to third parties, related cost of sales, and operating expenses directly attributable to the segment. It excludes other income and expense and certain expenses managed outside the reportable segments, such as research and development, corporate marketing, certain share-based compensation, income taxes, various nonrecurring charges, and separately managed general and administrative costs.",
+    "source_pdf": "Apple_10-K-2021.pdf"
+  },
+
+  {
+    "id": "C011",
+    "question": "What are NVIDIA's two reportable segments, and what is included in each?",
+    "ideal_answer": "NVIDIA reports two segments: Compute & Networking and Graphics. Compute & Networking includes the Data Center accelerated computing platform, networking, automotive AI Cockpit, autonomous driving development agreements and solutions, electric vehicle computing platforms, Jetson for robotics and embedded platforms, NVIDIA AI Enterprise and other software, and cryptocurrency mining processors. Graphics includes GeForce GPUs for gaming and PCs, GeForce NOW and related infrastructure, gaming platform solutions, Quadro/NVIDIA RTX GPUs for enterprise workstation graphics, vGPU software for cloud-based visual and virtual computing, automotive infotainment platforms, and Omniverse Enterprise software.",
+    "source_pdf": "Nvidia.pdf"
+  },
+  {
+    "id": "C012",
+    "question": "What were NVIDIA's fiscal 2023 revenues for Compute & Networking and Graphics, and how did each change from fiscal 2022?",
+    "ideal_answer": "Compute & Networking generated $15.068 billion in fiscal 2023, an increase of $4.022 billion or 36% from $11.046 billion in fiscal 2022. Graphics generated $11.906 billion in fiscal 2023, a decrease of $3.962 billion or 25% from $15.868 billion in fiscal 2022. Total revenue was $26.974 billion in fiscal 2023, compared with $26.914 billion in fiscal 2022.",
+    "source_pdf": "Nvidia.pdf"
+  },
+  {
+    "id": "C013",
+    "question": "Why did NVIDIA's gross margin decline in fiscal 2023?",
+    "ideal_answer": "NVIDIA's gross margin declined to 56.9% in fiscal 2023 from 64.9% in fiscal 2022. The decrease was primarily due to $2.17 billion of inventory provisions in fiscal 2023, consisting of approximately $1.04 billion for inventory on hand and approximately $1.13 billion for inventory purchase obligations in excess of current demand projections. The overall net effect of inventory provisions and sales of previously written-off inventory was an unfavorable impact on gross margin of 7.5% in fiscal 2023, compared with 0.9% in fiscal 2022.",
+    "source_pdf": "Nvidia.pdf"
+  },
+  {
+    "id": "C014",
+    "question": "What were NVIDIA's four major markets in fiscal 2023, and what was the revenue of each market?",
+    "ideal_answer": "NVIDIA identified Data Center, Gaming, Professional Visualization, and Automotive as four major markets where its expertise was critical. Fiscal 2023 revenue was $15.01 billion for Data Center, $9.07 billion for Gaming, $1.54 billion for Professional Visualization, and $903 million for Automotive.",
+    "source_pdf": "Nvidia.pdf"
+  },
+  {
+    "id": "C015",
+    "question": "What factors caused NVIDIA's Gaming revenue to decline in fiscal 2023?",
+    "ideal_answer": "Gaming revenue declined 27% to $9.07 billion in fiscal 2023. The decline was influenced by rapidly changing economic conditions that caused excess inventory with channel partners. NVIDIA responded by introducing pricing programs for channel partners and reducing GPU shipments to partners to lower channel inventory. The company's segment discussion also states that lower sell-in to partners to reduce channel inventory contributed to the decline, while global macroeconomic conditions and COVID-19-related disruptions in China weighed on gaming demand.",
+    "source_pdf": "Nvidia.pdf"
+  },
+
+  {
+    "id": "C016",
+    "question": "What are Tesla's two reportable segments, and what does each segment include?",
+    "ideal_answer": "Tesla operates as two reportable segments: automotive and energy generation and storage. The automotive segment includes the design, development, manufacturing, sales, and leasing of high-performance fully electric vehicles as well as sales of automotive regulatory credits. The energy generation and storage segment includes the design, manufacture, installation, sales, and leasing of solar energy generation and energy storage products and related services, as well as sales of solar energy system incentives.",
+    "source_pdf": "Tesla.pdf"
+  },
+  {
+    "id": "C017",
+    "question": "What were Tesla's 2022 revenues for the automotive and services-and-other segment, energy generation and storage, and total company revenue?",
+    "ideal_answer": "In 2022, Tesla's automotive and services-and-other segment generated $77.553 billion in revenue. The energy generation and storage segment generated $3.909 billion. Total company revenue was $81.462 billion.",
+    "source_pdf": "Tesla.pdf"
+  },
+  {
+    "id": "C018",
+    "question": "Why did Tesla's automotive sales revenue increase by 52% in 2022?",
+    "ideal_answer": "Tesla's automotive sales revenue increased $23.09 billion, or 52%, in 2022. The primary drivers were an increase of 347,024 Model 3 and Model Y deliveries and an increase of 38,183 Model S and Model X deliveries compared with 2021. Growth was supported by Model Y production ramping at Gigafactory Shanghai and Fremont and the start of production at Gigafactory Berlin-Brandenburg and Gigafactory Texas. Tesla also recognized $324 million of revenue from the general Full Self-Driving feature release in North America during the fourth quarter of 2022.",
+    "source_pdf": "Tesla.pdf"
+  },
+  {
+    "id": "C019",
+    "question": "What products and services were included in Tesla's Services and other revenue in 2022?",
+    "ideal_answer": "Tesla's Services and other revenue consisted of non-warranty after-sales vehicle services and parts, paid Supercharging, sales of used vehicles, retail merchandise, and vehicle insurance revenue. Services and other revenue increased by $2.29 billion, or 60%, in 2022, primarily due to increases in used vehicle revenue, non-warranty maintenance services revenue, paid Supercharging revenue, insurance services revenue, and retail merchandise revenue.",
+    "source_pdf": "Tesla.pdf"
+  },
+  {
+    "id": "C020",
+    "question": "What were Tesla's 2022 operating cash flow, investing cash flow, financing cash flow, and capital expenditures?",
+    "ideal_answer": "In 2022, Tesla generated $14.724 billion of net cash from operating activities, used $11.973 billion in investing activities, and used $3.527 billion in financing activities. Capital expenditures were $7.16 billion in 2022, compared with $6.48 billion in 2021.",
+    "source_pdf": "Tesla.pdf"
+  }
+]

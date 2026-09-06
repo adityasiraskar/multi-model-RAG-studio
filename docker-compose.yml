@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   genai:
     image: genai:prod
@@ -6,19 +5,10 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: genai
-    networks:
-      - default
     env_file:
-      - /home/ubuntu/Genai/bloomfire-backend/.env
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
-    restart: always
+      - OLLAMA_API_BASE=http://host.docker.internal:11434/api
     ports:
-      - "0.0.0.0:7861:7861"
-    volumes:
-      - /home/ubuntu/Genai/bloomfire-backend/graph_store:/graph_store
-      - /home/ubuntu/Genai/bloomfire-backend/genai_mod:/genai
-
-
-networks:
-  default:
+      - "7860:7860"

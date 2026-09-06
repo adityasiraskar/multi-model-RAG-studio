@@ -9,7 +9,14 @@ from langchain.memory import ConversationBufferMemory
 from langchain.prompts import MessagesPlaceholder
 from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
 from llm_pipe.multi_agent_tools import agents, query_ollama
-from llm_pipe.multi_agent_tools import get_answer_enesys, get_answer_apple, get_answer_nvidia, youtube_url, web_search
+from llm_pipe.multi_agent_tools import (
+    get_answer_apple,
+    get_answer_nvidia,
+    get_answer_document,
+    youtube_url,
+    web_search,
+)
+from config import app_config
 import re
 import json
 
@@ -33,15 +40,16 @@ def llm_route_question(question: str, chat_history: list = None) -> str:
     routing_prompt = f"""You are a routing assistant that determines which tool should be used to answer a user's question.
 
 Available tools:
-1. get_answer_enesys - Use for questions specifically about EnerSys company, its financials, operations, or business details
-2. get_answer_apple - Use for questions specifically about Apple company, its financials, operations, or business details  
-3. get_answer_nvidia - Use for questions specifically about NVIDIA company, its financials, operations, or business details
+1. get_answer_apple - Use for questions specifically about Apple company, its financials, operations, or business details
+2. get_answer_nvidia - Use for questions specifically about NVIDIA company, its financials, operations, or business details
+3. get_answer_document - Use for questions about Amazon or Tesla, the other companies covered by the financial-report corpus
 4. youtube_url - Use when user asks for YouTube videos, video content, tutorials, or wants to watch something
-5. web_search - Use for general questions, current events, news, or information not specific to the three companies above
+5. web_search - Use for general questions, current events, news, or information not specific to the document corpus
 
 Rules:
 - If the user asks for videos, YouTube content, or anything related to watching/viewing, use youtube_url
-- If the user asks specifically about EnerSys, Apple, or NVIDIA company information, use the respective company tool
+- If the user asks specifically about Apple or NVIDIA company information, use the respective company tool
+- If the user asks about Amazon or Tesla company information, use get_answer_document
 - For general questions or current information, use web_search
 - Pay attention to conversation history to understand context and follow-up questions
 - If a follow-up question refers to a previously discussed company (like "which country gave highest sales" after discussing Apple), use that company's tool
@@ -58,12 +66,14 @@ Tool to use:"""
         response = response.strip().lower()
         
         # Map the response to exact function names
-        if 'get_answer_enesys' in response or 'enesys' in response:
-            return 'get_answer_enesys'
-        elif 'get_answer_apple' in response or 'apple' in response:
+        if 'get_answer_apple' in response or 'apple' in response:
             return 'get_answer_apple'
         elif 'get_answer_nvidia' in response or 'nvidia' in response:
             return 'get_answer_nvidia'
+        elif 'get_answer_document' in response or any(
+            company in response for company in app_config.COMPANY_PDF_MAPPING
+        ):
+            return 'get_answer_document'
         elif 'youtube_url' in response or 'youtube' in response:
             return 'youtube_url'
         elif 'web_search' in response or 'web' in response:
@@ -84,9 +94,9 @@ class BaseLLM():
         
         # Map function names to actual functions
         self.function_map = {
-            "get_answer_enesys": get_answer_enesys,
             "get_answer_apple": get_answer_apple,
             "get_answer_nvidia": get_answer_nvidia,
+            "get_answer_document": get_answer_document,
             "youtube_url": youtube_url,
             "web_search": web_search,
         }

@@ -6,7 +6,7 @@ reports/final_project_report/_output/
 
 # Ignore the embedding model
 /llm_pipe/Ingestion_Retrieval/models/embedding_model
-
+/models/embedding_model/
 # Python
 *.pyc
 *.pyo

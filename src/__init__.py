@@ -1,0 +1,1 @@
+"""Adapters that expose the application's RAG pipeline to the eval suite."""

@@ -34,7 +34,7 @@ def check_ollama_available():
         print(f"Failed to connect to Ollama: {e}")
         return False
     
-ollama_available = check_ollama_available()
+ollama_available = False
 
 # SQL CODE START FROM HERE
 # Function to get available models from Ollama
@@ -125,15 +125,7 @@ SQL Query:"""
             sql_query = re.sub(r'```sql\n?', '', sql_query)
             sql_query = re.sub(r'```\n?', '', sql_query)
             sql_query = re.sub(r'^SQL Query:\s*', '', sql_query, flags=re.IGNORECASE)
-            
-            # Extract the first line that looks like a SQL query
-            lines = sql_query.split('\n')
-            for line in lines:
-                line = line.strip()
-                if line and (line.upper().startswith(('SELECT', 'PRAGMA', 'SHOW', 'DESC', 'WITH'))):
-                    return line
-            
-            return sql_query.split('\n')[0].strip() if sql_query else None
+            return sql_query.strip() or None
             
         else:
             return None

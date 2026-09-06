@@ -21,24 +21,16 @@ from pinecone import Pinecone, ServerlessSpec
 
 # Import our updated chunker
 from .document_chunker import process_documents
+from config import app_config
 
 # Configuration
 PINECONE_API_KEY = os.getenv("api_key") or os.getenv("PINECONE_API_KEY")
-EMBEDDING_MODEL = "all-mpnet-base-v2"
+EMBEDDING_MODEL = app_config.EMBEDDING_MODEL
 DIMENSION = 768  # mpnet's embedding size
-INDEX_NAME = "document-analysis"
+INDEX_NAME = app_config.INDEX_NAME
 
 # Company to PDF mapping - maps company names to their respective PDF files
-COMPANY_PDF_MAPPING = {
-       "enersys": ["EnerSys-2017-10K.pdf", "EnerSys-2023-10K.pdf"],
-       "amazon": ["Amazon10k2022.pdf"],
-       "apple": ["Apple_10-K-2021.pdf"],
-       "nvidia": ["Nvidia.pdf"],
-      "tesla": ["Tesla.pdf"],
-      "lockheed": ["Lockheed_martin_10k.pdf"],
-      "advent": ["Advent_Technologies_2022_10K.pdf"],
-     "transdigm": ["TransDigm-2022-10K.pdf"]
-}
+COMPANY_PDF_MAPPING = app_config.COMPANY_PDF_MAPPING
 
 def init_pinecone(api_key, index_name, dimension):
     """

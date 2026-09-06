@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
 from collections import defaultdict
+from config import app_config
 
 # Load environment variables from project root first
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -12,9 +13,9 @@ load_dotenv()
 
 # Configuration
 PINECONE_API_KEY = os.getenv("api_key") or os.getenv("PINECONE_API_KEY")
-INDEX_NAME = "document-analysis"
-MODELS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
-EMBEDDING_MODEL = "all-mpnet-base-v2"  # Embedding model
+INDEX_NAME = app_config.INDEX_NAME
+MODELS_DIR = app_config.MODELS_DIR
+EMBEDDING_MODEL = app_config.EMBEDDING_MODEL
 
 def init_pinecone_and_embeddings():
     """Initialize Pinecone and embedding model"""
@@ -53,7 +54,7 @@ def init_pinecone_and_embeddings():
     print("Models loaded successfully!")
     return pc, index, embeddings_model
 
-def semantic_search(index, embeddings_model, query, namespace, top_k=5, score_threshold=0.4, max_results=3):
+def semantic_search(index, embeddings_model, query, namespace, top_k=4, score_threshold=0.4, max_results=3):
     """
     Perform semantic search with score filtering and result limiting.
 
