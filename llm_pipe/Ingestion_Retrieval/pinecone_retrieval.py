@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Any
+from typing import Dict, List
 from dotenv import load_dotenv
 from pinecone import Pinecone
 from sentence_transformers import SentenceTransformer
@@ -17,18 +17,24 @@ INDEX_NAME = app_config.INDEX_NAME
 MODELS_DIR = app_config.MODELS_DIR
 EMBEDDING_MODEL = app_config.EMBEDDING_MODEL
 
+
 def init_pinecone_and_embeddings():
     """Initialize Pinecone and embedding model"""
+    if not PINECONE_API_KEY:
+        raise RuntimeError(
+            "PINECONE_API_KEY is missing. Add it to .env or the process environment."
+        )
+
     print("Initializing Pinecone...")
     pc = Pinecone(api_key=PINECONE_API_KEY)
     index = pc.Index(INDEX_NAME)
-    
+
     try:
         # Create models directory if it doesn't exist
         if not os.path.exists(MODELS_DIR):
             print(f"Creating models directory at {MODELS_DIR}...")
             os.makedirs(MODELS_DIR, exist_ok=True)
-        
+
         # Check if embedding model exists
         embedding_model_path = os.path.join(MODELS_DIR, "embedding_model")
         if os.path.exists(embedding_model_path):
@@ -37,7 +43,7 @@ def init_pinecone_and_embeddings():
         else:
             print("Embedding model not found locally, downloading...")
             embeddings_model = SentenceTransformer(EMBEDDING_MODEL)
-            
+
             # Save the embedding model for future use
             try:
                 print(f"Saving embedding model to {embedding_model_path}...")
@@ -50,11 +56,25 @@ def init_pinecone_and_embeddings():
         print(f"Warning: Error with models directory: {e}")
         print("Continuing with in-memory embedding model only...")
         embeddings_model = SentenceTransformer(EMBEDDING_MODEL)
-    
+
     print("Models loaded successfully!")
     return pc, index, embeddings_model
 
-def semantic_search(index, embeddings_model, query, namespace, top_k=4, score_threshold=0.4, max_results=3):
+
+def _extract_chunk_text(metadata: Dict) -> str:
+    """
+    Pull the best available text out of a match's metadata.
+    Prefers the full "text" field; falls back to the older truncated
+    "text_snippet"/"text_preview" fields for vectors ingested before this
+    fix, so old and newly-ingested data both work during a re-index.
+    """
+    return metadata.get(
+        "text",
+        metadata.get("text_preview", metadata.get("text_snippet", "No preview available")),
+    )
+
+
+def semantic_search(index, embeddings_model, query, namespace, top_k=5, score_threshold=0.4, max_results=3):
     """
     Perform semantic search with score filtering and result limiting.
 
@@ -88,25 +108,27 @@ def semantic_search(index, embeddings_model, query, namespace, top_k=4, score_th
 
     # Group by document_id and include page numbers
     grouped_results = defaultdict(lambda: defaultdict(list))
-    
+
     for match in filtered_matches:
         metadata = match.get("metadata", {})
         doc_id = metadata.get("document_id", f"unknown-{match['id']}")
-        
+
         # Extract page number - check both possible keys
         page_number = metadata.get("page_number", metadata.get("page", "unknown"))
-        
+
         # Extract content type
         content_type = metadata.get("content_type", "text")
-        
+
         # Extract table info if available
         table_info = ""
         if content_type == "table" and "table_id" in metadata:
             table_info = f" (Table {metadata['table_id']})"
-        
+            if metadata.get("total_table_parts", 1) not in (0, 1):
+                table_info += f" [part {metadata.get('table_part', 0) + 1}/{metadata['total_table_parts']}]"
+
         grouped_results[doc_id][page_number].append({
             "score": match["score"],
-            "text": metadata.get("text_snippet", metadata.get("text", "No preview available")),
+            "text": _extract_chunk_text(metadata),
             "content_type": content_type,
             "table_info": table_info,
             "id": match["id"]
@@ -114,53 +136,56 @@ def semantic_search(index, embeddings_model, query, namespace, top_k=4, score_th
 
     return grouped_results
 
+
 def format_documents(results_by_doc: Dict) -> str:
     """
-    Format retrieved documents for inclusion in the context, 
+    Format retrieved documents for inclusion in the context,
     including page number if present.
     """
     if not results_by_doc:
         return "No relevant information found."
-    
+
     formatted_text = ""
     for doc_id, pages in results_by_doc.items():
         formatted_text += f"\n=== Document: {doc_id} ===\n"
-        
+
         for page_num, matches in pages.items():
             for match in matches:
                 formatted_text += f"\n--- Page {page_num}{match['table_info']} (score: {match['score']:.2f}) ---\n"
                 formatted_text += match["text"].strip() + "\n"
-    
+
     return formatted_text
+
 
 def get_document_page_mapping(results_by_doc: Dict) -> Dict[str, List[str]]:
     """
     Create a mapping of document IDs to their relevant page numbers.
-    
+
     Args:
         results_by_doc: Dictionary of search results grouped by document_id and page
-        
+
     Returns:
         Dictionary mapping document IDs to lists of page numbers
     """
     doc_page_mapping = {}
-    
+
     for doc_id, pages in results_by_doc.items():
         doc_page_mapping[doc_id] = list(pages.keys())
-    
+
     return doc_page_mapping
+
 
 def process_query(index, embeddings_model, company: str, query: str) -> Dict:
     """
     Process a query for a specific company and return relevant document chunks
     with their page numbers.
-    
+
     Args:
         index: Pinecone index object
         embeddings_model: Embedding model
         company: Company namespace to search
         query: Query string
-        
+
     Returns:
         Dictionary containing:
         - results: Search results grouped by document_id and page
@@ -173,35 +198,36 @@ def process_query(index, embeddings_model, company: str, query: str) -> Dict:
             "formatted_text": "No query provided.",
             "doc_page_mapping": {}
         }
-    
+
     # Search Pinecone for relevant context
     results = semantic_search(
         index=index,
         embeddings_model=embeddings_model,
         query=query,
         namespace=company.lower(),
-        top_k=15,
+        top_k=5,
         score_threshold=0.35,
         max_results=5
     )
-    
+
     # Format the results for display
     formatted_text = format_documents(results)
-    
+
     # Create document-to-page mapping
     doc_page_mapping = get_document_page_mapping(results)
-    
+
     return {
         "results": results,
         "formatted_text": formatted_text,
         "doc_page_mapping": doc_page_mapping
     }
 
-def search_by_document_and_page(index, embeddings_model, company: str, 
-                               document_id: str, page_number: str, top_k=3):
+
+def search_by_document_and_page(index, embeddings_model, company: str,
+                                 document_id: str, page_number: str, top_k=5):
     """
     Search for content from a specific document and page number.
-    
+
     Args:
         index: Pinecone index object
         embeddings_model: Embedding model
@@ -209,7 +235,7 @@ def search_by_document_and_page(index, embeddings_model, company: str,
         document_id: Document ID to filter by
         page_number: Page number to filter by
         top_k: Number of results to return
-        
+
     Returns:
         List of matching content from the specified page
     """
@@ -217,15 +243,14 @@ def search_by_document_and_page(index, embeddings_model, company: str,
     filter_dict = {
         "document_id": document_id
     }
-    
+
     # Add page filter - check both possible key names
     if page_number:
-        # We'll try both "page" and "page_number" in the query
         filter_dict["$or"] = [
             {"page": page_number},
             {"page_number": page_number}
         ]
-    
+
     # Query without a specific vector (empty search)
     # This will return matches based only on the filters
     response = index.query(
@@ -235,22 +260,22 @@ def search_by_document_and_page(index, embeddings_model, company: str,
         top_k=top_k,
         include_metadata=True
     )
-    
+
     results = []
     for match in response.get("matches", []):
         metadata = match.get("metadata", {})
         content_type = metadata.get("content_type", "text")
-        
+
         # Add table info if applicable
         table_info = ""
         if content_type == "table" and "table_id" in metadata:
             table_info = f" (Table {metadata['table_id']})"
-            
+
         results.append({
-            "text": metadata.get("text_snippet", metadata.get("text", "No preview available")),
+            "text": _extract_chunk_text(metadata),
             "content_type": content_type,
             "table_info": table_info,
             "id": match["id"]
         })
-    
+
     return results

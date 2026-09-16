@@ -347,7 +347,6 @@ def cost_report(rows):
     min_cost   = min(r["cost_total"] for r in rows)
     max_cost   = max(r["cost_total"] for r in rows)
 
-    avg_cost_in  = col_avg(rows, "cost_input") + col_avg(rows, "cost_cached")
     avg_cost_out = col_avg(rows, "cost_output")
     out_share = 100 * avg_cost_out / avg_cost if avg_cost else 0
 

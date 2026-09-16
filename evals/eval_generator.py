@@ -53,12 +53,14 @@ def run():
         FaithfulnessMetric(
             threshold=THRESHOLD,
             model=JUDGE_MODEL,
-            include_reason=True,   # prints WHY each score --- shows which claims were unsupported
+            include_reason=True,# prints WHY each score --- shows which claims were unsupported
+            async_mode=False   
         ),
         AnswerRelevancyMetric(
             threshold=THRESHOLD,
             model=JUDGE_MODEL,
             include_reason=True,
+            async_mode=False
         ),
     ]
 

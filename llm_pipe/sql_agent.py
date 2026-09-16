@@ -45,7 +45,7 @@ def get_available_models():
             models = response.json()
             return [model['name'] for model in models.get('models', [])]
         return []
-    except:
+    except Exception:
         return []
 
 # Function to find closest column match
@@ -347,7 +347,7 @@ def process_query_sql(csv_file, query, selected_model, use_ollama):
         # Clean up the database file
         try:
             os.remove(db_name)
-        except:
+        except OSError:
             pass
         
         return status_msg, sql_query, result

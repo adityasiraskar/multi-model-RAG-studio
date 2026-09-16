@@ -1,14 +1,9 @@
 import os
 import time
-from dotenv import load_dotenv
-from tqdm import tqdm
 import uuid
 import json
 import fitz  # PyMuPDF
-from typing import List, Dict, Any
-
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
+from dotenv import load_dotenv
 
 # Import our custom PDF parser
 from .pdf_parser import parse_pdf
@@ -23,32 +18,46 @@ from pinecone import Pinecone, ServerlessSpec
 from .document_chunker import process_documents
 from config import app_config
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+load_dotenv(os.path.join(PROJECT_ROOT, ".env"))
+
 # Configuration
 PINECONE_API_KEY = os.getenv("api_key") or os.getenv("PINECONE_API_KEY")
 EMBEDDING_MODEL = app_config.EMBEDDING_MODEL
 DIMENSION = 768  # mpnet's embedding size
 INDEX_NAME = app_config.INDEX_NAME
 
+# Pinecone metadata is capped at 40KB per record. A short preview is kept
+# alongside the full text purely for quick debugging/logging - retrieval
+# should always read the full "text" field, not this preview.
+TEXT_PREVIEW_CHARS = 200
+
 # Company to PDF mapping - maps company names to their respective PDF files
 COMPANY_PDF_MAPPING = app_config.COMPANY_PDF_MAPPING
+
 
 def init_pinecone(api_key, index_name, dimension):
     """
     Initialize Pinecone client and create index if needed
-    
+
     Args:
         api_key: Pinecone API key
         index_name: Name of the index to create
         dimension: Vector dimension
-        
+
     Returns:
         Pinecone client and index object
     """
+    if not api_key:
+        raise RuntimeError(
+            "PINECONE_API_KEY is missing. Add it to .env or the process environment."
+        )
+
     pc = Pinecone(api_key=api_key)
-    
+
     # Check if index exists
     existing_indexes = [index.name for index in pc.list_indexes()]
-    
+
     if index_name not in existing_indexes:
         print(f"Creating new Pinecone index: {index_name}")
         # Change this to use a supported region for free plan
@@ -56,16 +65,17 @@ def init_pinecone(api_key, index_name, dimension):
             name=index_name,
             dimension=dimension,
             metric="cosine",
-            spec=ServerlessSpec(cloud="aws", region="us-east-1") #'us-east1'
+            spec=ServerlessSpec(cloud="aws", region="us-east-1")  # 'us-east1'
         )
-        # Wait for index to be ready 
+        # Wait for index to be ready
         time.sleep(60)
-        
+
     # Connect to the index
     index = pc.Index(index_name)
     print(f"Connected to Pinecone index: {index_name}")
-    
+
     return pc, index
+
 
 def save_pdf_page_images(pdf_path, output_dir="page_images"):
     os.makedirs(output_dir, exist_ok=True)
@@ -85,42 +95,60 @@ def save_pdf_page_images(pdf_path, output_dir="page_images"):
 
 def prepare_metadata(chunk_text, chunk_metadata, pdf_path):
     """
-    Prepare metadata for a chunk
-    
+    Prepare metadata for a chunk.
+
+    IMPORTANT: the full chunk_text is stored under "text" - this is what
+    retrieval hands to the LLM as context. Previously only a 200-character
+    truncated "text_snippet" was stored, which meant every chunk (including
+    entire financial tables) was cut down to ~200 characters before it ever
+    reached the model - the actual bug behind most "wrong answer" cases.
+
     Args:
         chunk_text: Text content of the chunk
         chunk_metadata: Metadata from the chunking process
         pdf_path: Path to the source PDF
-        
+
     Returns:
         Dictionary of metadata
     """
     metadata = {
         "source": pdf_path,
         "document_id": os.path.basename(pdf_path).replace(".pdf", ""),
-        "text_snippet": chunk_text[:200] + "..." if len(chunk_text) > 200 else chunk_text
+        "text": chunk_text,
+        "text_preview": (
+            chunk_text[:TEXT_PREVIEW_CHARS] + "..."
+            if len(chunk_text) > TEXT_PREVIEW_CHARS
+            else chunk_text
+        ),
     }
-    
-    # Add any additional metadata from the chunking process
+
+    # Add any additional metadata from the chunking process, but never let it
+    # clobber the full "text" field set above.
     if chunk_metadata:
-        metadata.update(chunk_metadata)
-    
+        extra = {k: v for k, v in chunk_metadata.items() if k != "text"}
+        metadata.update(extra)
+        metadata["text"] = chunk_text
+
     # Ensure page number is included (required for better retrieval)
-    if "page" in chunk_metadata:
+    if chunk_metadata and "page" in chunk_metadata:
         metadata["page_number"] = chunk_metadata["page"]
-    
+
     # Add special handling for table data
     if chunk_metadata and chunk_metadata.get("is_table", False):
-        # Extract and store table-specific metadata that will help with queries
         metadata["content_type"] = "table"
         if "table_id" in chunk_metadata:
             metadata["table_id"] = chunk_metadata["table_id"]
-    
+        if "table_part" in chunk_metadata:
+            metadata["table_part"] = chunk_metadata["table_part"]
+        if "total_table_parts" in chunk_metadata:
+            metadata["total_table_parts"] = chunk_metadata["total_table_parts"]
+
     # Add content type if not already set
     if "content_type" not in metadata:
         metadata["content_type"] = "text"
-        
+
     return metadata
+
 
 class Document:
     """Simple document class to match the expected format for process_documents"""
@@ -128,10 +156,11 @@ class Document:
         self.page_content = page_content
         self.metadata = metadata or {}
 
+
 def process_and_ingest_pdf(index, embeddings_model, pdf_path, namespace, chunk_size=700, chunk_overlap=150):
     """
     Process and ingest a PDF document into Pinecone using our custom parser
-    
+
     Args:
         index: Pinecone index object
         embeddings_model: Model to use for generating embeddings
@@ -141,8 +170,8 @@ def process_and_ingest_pdf(index, embeddings_model, pdf_path, namespace, chunk_s
         chunk_overlap: Overlap between chunks
     """
     print(f"Processing {pdf_path} for namespace {namespace}...")
-    
-    #New
+
+    # Save page images (used elsewhere in the app to show source pages)
     image_map = save_pdf_page_images(pdf_path)
     JSON_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "jsons")
     os.makedirs(JSON_DIR, exist_ok=True)
@@ -152,69 +181,70 @@ def process_and_ingest_pdf(index, embeddings_model, pdf_path, namespace, chunk_s
     with open(json_path, "w") as f:
         json.dump(image_map, f)
 
-    # # Use our custom PDF parser
-    # extracted_content = parse_pdf(pdf_path)
-
     combined_text, page_text_map = parse_pdf(pdf_path)
 
-    # Create a Document object to match expected format for process_documents
+    # Create a Document object to match expected format for process_documents.
+    # doc_id is set here (once, from the source path) so every chunk of this
+    # PDF shares the same stable doc_id instead of getting a random one.
     document = Document(
         page_content=combined_text,
-        metadata={"source": pdf_path}
+        metadata={"source": pdf_path, "doc_id": os.path.basename(pdf_path).replace(".pdf", "")}
     )
-
 
     # Process the document through our updated chunking pipeline
     chunks = process_documents(
         [document],  # Pass as a list of documents
-        chunk_size=chunk_size, 
+        chunk_size=chunk_size,
         chunk_overlap=chunk_overlap,
         strategy="recursive"
     )
-    
+
     print(f"Created {len(chunks)} chunks from {pdf_path}")
-    
+
     # Count tables vs. text chunks for reporting
     table_chunks = sum(1 for chunk in chunks if chunk.metadata.get("is_table", False))
     text_chunks = len(chunks) - table_chunks
     print(f"Text chunks: {text_chunks}, Table chunks: {table_chunks}")
-    
+
     # Process chunks in batches
     batch_size = 100
     total_batches = (len(chunks) + batch_size - 1) // batch_size
-    
+
     for batch_idx in range(total_batches):
         start_idx = batch_idx * batch_size
         end_idx = min((batch_idx + 1) * batch_size, len(chunks))
         current_batch = chunks[start_idx:end_idx]
-        
+
         # Create embeddings for the batch
         texts = [chunk.page_content for chunk in current_batch]
         metadatas = [prepare_metadata(chunk.page_content, chunk.metadata, pdf_path) for chunk in current_batch]
-        ids = [f"{namespace}-{chunk.metadata.get('page', '0')}-{idx}-{str(uuid.uuid4())[:8]}" 
-               for idx, chunk in enumerate(current_batch)]
-        
+        ids = [
+            f"{namespace}-{chunk.metadata.get('page', '0')}-{idx}-{str(uuid.uuid4())[:8]}"
+            for idx, chunk in enumerate(current_batch)
+        ]
+
         # Generate embeddings
         embeddings = embeddings_model.encode(texts, convert_to_numpy=True).tolist()
-        
+
         # Prepare vectors for upsert
         vectors = [
             {"id": id, "values": embedding, "metadata": metadata}
             for id, embedding, metadata in zip(ids, embeddings, metadatas)
         ]
-        
+
         # Upsert to Pinecone
         index.upsert(vectors=vectors, namespace=namespace)
-        
+
         print(f"Batch {batch_idx+1}/{total_batches} uploaded to namespace {namespace}")
+
 
 def get_index_stats(index):
     """
     Get statistics about the index
-    
+
     Args:
         index: Pinecone index object
-        
+
     Returns:
         Statistics about the index
     """
@@ -222,10 +252,11 @@ def get_index_stats(index):
     print(f"Index stats: {stats}")
     return stats
 
+
 def search_by_page(index, embeddings_model, query, namespace, page_number=None, top_k=5):
     """
     Search for documents by query with optional page filter
-    
+
     Args:
         index: Pinecone index object
         embeddings_model: Model to use for generating embeddings
@@ -233,18 +264,18 @@ def search_by_page(index, embeddings_model, query, namespace, page_number=None, 
         namespace: Namespace to search in
         page_number: Optional page number to filter results by
         top_k: Number of results to return
-        
+
     Returns:
         Search results
     """
     # Generate embedding for the query
     query_embedding = embeddings_model.encode(query, convert_to_numpy=True).tolist()
-    
+
     # Create filter for page number if specified
     filter_dict = {}
     if page_number is not None:
         filter_dict["page_number"] = str(page_number)
-    
+
     # Perform the search
     results = index.query(
         namespace=namespace,
@@ -253,8 +284,9 @@ def search_by_page(index, embeddings_model, query, namespace, page_number=None, 
         top_k=top_k,
         include_metadata=True
     )
-    
+
     return results
+
 
 def ingest_all_documents():
     """Ingest all documents into Pinecone with appropriate namespaces"""
@@ -264,10 +296,10 @@ def ingest_all_documents():
         index_name=INDEX_NAME,
         dimension=DIMENSION
     )
-    
+
     # Initialize embedding model
     embeddings_model = SentenceTransformer(EMBEDDING_MODEL)
-    
+
     # Process each company and its PDFs
     for company, pdf_files in COMPANY_PDF_MAPPING.items():
         print(f"\nProcessing {company} documents...")
@@ -285,6 +317,7 @@ def ingest_all_documents():
     # Get final stats
     get_index_stats(index)
     print("\nAll documents processed and ingested successfully!")
+
 
 if __name__ == "__main__":
     ingest_all_documents()

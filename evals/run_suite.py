@@ -31,10 +31,10 @@ from dotenv import load_dotenv
 # Load project credentials before evaluator modules construct judge clients.
 load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"), override=True)
 
-from src.rag_pipeline import RagPipeline
-from src.reranker import RerankingRetriever
+from src.rag_pipeline import RagPipeline  # noqa: E402
+from src.reranker import RerankingRetriever  # noqa: E402
 
-from evals import (
+from evals import (  # noqa: E402
     eval_retriever,
     eval_generator,
     eval_rag_pipeline,
@@ -42,7 +42,7 @@ from evals import (
     eval_safety,
     eval_ops,
 )
-from evals.metric_registry import rule_for
+from evals.metric_registry import rule_for  # noqa: E402
 
 # ============================================================
 # 1. CONFIG

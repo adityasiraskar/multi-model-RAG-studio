@@ -1,4 +1,3 @@
-import gradio as gr
 from youtube_transcript_api import YouTubeTranscriptApi
 import requests
 import threading

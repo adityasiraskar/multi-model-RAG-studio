@@ -21,7 +21,7 @@ THRESHOLD = 0.7
 
 def run(rag):
     # 1. LOAD queries (we only need the queries --- context comes from the pipeline now)
-    goldens = load_goldens(GOLDEN_PATH)[:4]   # limit to 2 for speed; remove this slice for full eval
+    goldens = load_goldens(GOLDEN_PATH)   # limit to 2 for speed; remove this slice for full eval
     
     # 2. RUN THE INJECTED PIPELINE per query, build a test case from LIVE output
     test_cases = []

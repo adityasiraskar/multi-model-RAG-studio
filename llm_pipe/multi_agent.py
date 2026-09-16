@@ -1,185 +1,689 @@
-from langchain.schema import SystemMessage 
-from langchain.schema import HumanMessage, AIMessage
-from langchain.agents import AgentExecutor
-from langchain.agents.format_scratchpad import format_to_openai_functions
-from langchain.schema.runnable import RunnablePassthrough
-from langchain.prompts import ChatPromptTemplate
-from langchain_core.utils.function_calling import convert_to_openai_function
-from langchain.memory import ConversationBufferMemory
-from langchain.prompts import MessagesPlaceholder
-from langchain.agents.output_parsers import OpenAIFunctionsAgentOutputParser
-from llm_pipe.multi_agent_tools import agents, query_ollama
 from llm_pipe.multi_agent_tools import (
+    query_openai,
     get_answer_apple,
     get_answer_nvidia,
-    get_answer_document,
+    get_answer_amazon,
+    get_answer_tesla,
     youtube_url,
     web_search,
 )
+
 from config import app_config
-import re
-import json
 
-def llm_route_question(question: str, chat_history: list = None) -> str:
+
+# ============================================================
+# VALID TOOLS
+# ============================================================
+
+VALID_TOOLS = (
+    "get_answer_apple",
+    "get_answer_nvidia",
+    "get_answer_amazon",
+    "get_answer_tesla",
+    "youtube_url",
+    "web_search",
+)
+
+
+# ============================================================
+# ROUTER
+# ============================================================
+
+def llm_route_question(
+    question: str,
+    chat_history: list = None,
+) -> str:
     """
-    Use LLM to determine which tool to use based on the question content and chat history
+    Decide which tool should answer the question.
+
+    Priority:
+
+    1. Explicit video request -> YouTube
+    2. PDF company question -> corresponding PDF
+    3. Follow-up to a PDF question -> same PDF
+    4. Current/external/general information -> web
     """
-    # Format chat history for context
+
     history_context = ""
-    if chat_history and len(chat_history) > 0:
-        history_context = "\n\nRecent conversation history:\n"
-        # Get last 3 exchanges for context (to avoid token limits)
-        recent_history = chat_history[-6:] if len(chat_history) > 6 else chat_history
-        
-        for i, entry in enumerate(recent_history):
-            if entry["role"] == "user":
-                history_context += f"User: {entry['content']}\n"
-            elif entry["role"] == "assistant":
-                history_context += f"Assistant: {entry['content'][:200]}...\n"  # Truncate long responses
-    
-    routing_prompt = f"""You are a routing assistant that determines which tool should be used to answer a user's question.
 
-Available tools:
-1. get_answer_apple - Use for questions specifically about Apple company, its financials, operations, or business details
-2. get_answer_nvidia - Use for questions specifically about NVIDIA company, its financials, operations, or business details
-3. get_answer_document - Use for questions about Amazon or Tesla, the other companies covered by the financial-report corpus
-4. youtube_url - Use when user asks for YouTube videos, video content, tutorials, or wants to watch something
-5. web_search - Use for general questions, current events, news, or information not specific to the document corpus
+    if chat_history:
 
-Rules:
-- If the user asks for videos, YouTube content, or anything related to watching/viewing, use youtube_url
-- If the user asks specifically about Apple or NVIDIA company information, use the respective company tool
-- If the user asks about Amazon or Tesla company information, use get_answer_document
-- For general questions or current information, use web_search
-- Pay attention to conversation history to understand context and follow-up questions
-- If a follow-up question refers to a previously discussed company (like "which country gave highest sales" after discussing Apple), use that company's tool
-- Only respond with the exact tool name, nothing else
+        recent_history = chat_history[-8:]
+
+        history_context = (
+            "RECENT CONVERSATION:\n"
+        )
+
+        for entry in recent_history:
+
+            role = entry.get("role", "")
+            content = entry.get("content", "")
+
+            if not content:
+                continue
+
+            history_context += (
+                f"{role.upper()}: "
+                f"{content[:600]}\n"
+            )
+
+    else:
+
+        history_context = (
+            "RECENT CONVERSATION:\n"
+            "(none)\n"
+        )
+
+
+    routing_prompt = f"""
+You are a STRICT routing classifier for a financial
+document-question-answering application.
+
+Your ONLY job is to select exactly ONE tool.
+
+AVAILABLE TOOLS:
+
+get_answer_apple
+    Use ONLY for questions that should be answered from
+    the Apple PDF/10-K.
+
+get_answer_nvidia
+    Use ONLY for questions that should be answered from
+    the NVIDIA PDF/10-K.
+
+get_answer_amazon
+    Use ONLY for questions that should be answered from
+    the Amazon PDF/10-K.
+
+get_answer_tesla
+    Use ONLY for questions that should be answered from
+    the Tesla PDF/10-K.
+
+youtube_url
+    Use ONLY when the user explicitly asks for a video,
+    YouTube video, tutorial video, demonstration, or
+    something to watch.
+
+web_search
+    Use for current information, news, live information,
+    external information, or questions outside the
+    four PDF documents.
+
+============================================================
+CRITICAL PDF ROUTING RULE
+============================================================
+
+If the question can reasonably be answered from one of
+the four PDF documents, ROUTE TO THAT PDF.
+
+DO NOT route a PDF question to web_search simply because
+the internet could also answer it.
+
+PDF ROUTING HAS PRIORITY OVER WEB SEARCH.
+
+============================================================
+FOLLOW-UP QUESTIONS
+============================================================
+
+Use conversation history.
+
+If the previous conversation was about one of the four
+PDF companies and the current question is a follow-up,
+KEEP USING THE SAME PDF.
+
+Examples:
+
+Previous:
+"What was Apple's revenue?"
+
+Current:
+"What about 2021?"
+
+-> get_answer_apple
+
+
+Previous:
+"Tell me about Tesla's operating expenses."
+
+Current:
+"What was the percentage change?"
+
+-> get_answer_tesla
+
+
+Previous:
+"How did NVIDIA's data center revenue perform?"
+
+Current:
+"What were the main reasons?"
+
+-> get_answer_nvidia
+
+
+Previous:
+"What was Amazon's operating income?"
+
+Current:
+"Which year was higher?"
+
+-> get_answer_amazon
+
+============================================================
+COMPANY ROUTING
+============================================================
+
+Apple -> get_answer_apple
+
+NVIDIA -> get_answer_nvidia
+
+Amazon -> get_answer_amazon
+
+Tesla -> get_answer_tesla
+
+============================================================
+WEB ROUTING
+============================================================
+
+Use web_search when:
+
+- the user explicitly asks for latest/current information
+- the user asks about current stock price
+- the user asks about current news
+- the user asks about something outside the PDFs
+- the question is unrelated to the four PDF companies
+- no relevant PDF company can be established
+
+Examples:
+
+"What is Apple's stock price today?"
+-> web_search
+
+"What happened in NVIDIA news today?"
+-> web_search
+
+"What is the weather in Delhi?"
+-> web_search
+
+============================================================
+YOUTUBE ROUTING
+============================================================
+
+If the user explicitly asks for a video:
+
+"Show me a video about Apple's products"
+-> youtube_url
+
+"Find a YouTube tutorial"
+-> youtube_url
+
+============================================================
+IMPORTANT
+============================================================
+
+DO NOT answer the question.
+
+DO NOT explain your decision.
+
+Return ONLY the tool name.
 
 {history_context}
 
-Current question: {question}
+CURRENT QUESTION:
+{question}
 
-Tool to use:"""
+TOOL:
+"""
+
 
     try:
-        response = query_ollama(routing_prompt)
-        response = response.strip().lower()
-        
-        # Map the response to exact function names
-        if 'get_answer_apple' in response or 'apple' in response:
-            return 'get_answer_apple'
-        elif 'get_answer_nvidia' in response or 'nvidia' in response:
-            return 'get_answer_nvidia'
-        elif 'get_answer_document' in response or any(
-            company in response for company in app_config.COMPANY_PDF_MAPPING
-        ):
-            return 'get_answer_document'
-        elif 'youtube_url' in response or 'youtube' in response:
-            return 'youtube_url'
-        elif 'web_search' in response or 'web' in response:
-            return 'web_search'
-        else:
-            # If LLM response is unclear, fall back to web_search
-            print(f"[WARNING] Unclear LLM routing response: {response}. Defaulting to web_search")
-            return 'web_search'
-            
-    except Exception as e:
-        print(f"[ERROR] LLM routing failed: {str(e)}. Defaulting to web_search")
-        return 'web_search'
 
-class BaseLLM():
-    def __init__(self, message: str, history):
+        response = query_openai(
+            routing_prompt,
+            temperature=0.0,
+            max_tokens=20,
+        )
+
+        response = (
+            response
+            .strip()
+            .lower()
+            .replace("`", "")
+        )
+
+        print(
+            f"[ROUTER LLM RESPONSE] {response}"
+        )
+
+
+        # ====================================================
+        # EXACT MATCH
+        # ====================================================
+
+        if response in VALID_TOOLS:
+
+            return response
+
+
+        # ====================================================
+        # KEYWORD FALLBACK
+        # ====================================================
+
+        if "youtube" in response:
+
+            return "youtube_url"
+
+        if "video" in response:
+
+            return "youtube_url"
+
+        if "apple" in response:
+
+            return "get_answer_apple"
+
+        if "nvidia" in response:
+
+            return "get_answer_nvidia"
+
+        if "amazon" in response:
+
+            return "get_answer_amazon"
+
+        if "tesla" in response:
+
+            return "get_answer_tesla"
+
+
+        # ====================================================
+        # IMPORTANT FALLBACK
+        # ====================================================
+
+        print(
+            "[WARNING] Router returned an unclear response."
+        )
+
+        print(
+            "[WARNING] Falling back to document routing."
+        )
+
+        return _infer_company_from_history(
+            chat_history
+        ) or "web_search"
+
+
+    except Exception as exc:
+
+        print(
+            f"[ERROR] LLM routing failed: {exc}"
+        )
+
+        return (
+            _infer_company_from_history(
+                chat_history
+            )
+            or "web_search"
+        )
+
+
+# ============================================================
+# HISTORY-BASED COMPANY RESOLUTION
+# ============================================================
+
+def _infer_company_from_history(
+    chat_history: list = None,
+) -> str | None:
+    """
+    Resolve the most recently discussed PDF company
+    from conversation history.
+
+    Returns a tool name.
+    """
+
+    if not chat_history:
+
+        return None
+
+    company_tools = {
+        "apple": "get_answer_apple",
+        "nvidia": "get_answer_nvidia",
+        "amazon": "get_answer_amazon",
+        "tesla": "get_answer_tesla",
+    }
+
+
+    # Search newest messages first
+    for entry in reversed(chat_history):
+
+        content = str(
+            entry.get("content", "")
+        ).lower()
+
+        for company, tool_name in company_tools.items():
+
+            if company in content:
+
+                return tool_name
+
+    return None
+
+
+# ============================================================
+# BASE LLM
+# ============================================================
+
+class BaseLLM:
+
+    def __init__(
+        self,
+        message: str,
+        history,
+    ):
+
         self.user_input = message
-        self.history = history
-        
-        # Map function names to actual functions
+        self.history = history or []
+
+
         self.function_map = {
-            "get_answer_apple": get_answer_apple,
-            "get_answer_nvidia": get_answer_nvidia,
-            "get_answer_document": get_answer_document,
-            "youtube_url": youtube_url,
-            "web_search": web_search,
+
+            "get_answer_apple":
+                get_answer_apple,
+
+            "get_answer_nvidia":
+                get_answer_nvidia,
+
+            "get_answer_amazon":
+                get_answer_amazon,
+
+            "get_answer_tesla":
+                get_answer_tesla,
+
+            "youtube_url":
+                youtube_url,
+
+            "web_search":
+                web_search,
         }
 
+
     def generate_answer(self):
+
         try:
-            # Use LLM to route the question to appropriate tool with chat history
-            selected_function = llm_route_question(self.user_input, self.history)
-            
-            # Print the routing decision to terminal
-            print(f"\n{'='*50}")
-            print(f"[ROUTING] Question: {self.user_input}")
-            print(f"[ROUTING] Chat History Length: {len(self.history)} messages")
-            print(f"[ROUTING] Selected Tool: {selected_function}")
-            print(f"{'='*50}")
-            
-            # Get the function
+
+            selected_function = llm_route_question(
+                self.user_input,
+                self.history,
+            )
+
+
+            # =================================================
+            # DEBUGGING
+            # =================================================
+
+            print("\n" + "=" * 60)
+
+            print(
+                f"[ROUTING] Question: "
+                f"{self.user_input}"
+            )
+
+            print(
+                f"[ROUTING] History: "
+                f"{len(self.history)} messages"
+            )
+
+            print(
+                f"[ROUTING] Selected Tool: "
+                f"{selected_function}"
+            )
+
+            print("=" * 60)
+
+
+            # =================================================
+            # EXECUTE TOOL
+            # =================================================
+
             if selected_function in self.function_map:
-                func = self.function_map[selected_function]
-                
-                # Print tool execution to terminal
-                print(f"[EXECUTION] Calling {selected_function}...")
-                
-                # Call the function directly
-                answer = func(self.user_input)
-                
-                print(f"[EXECUTION] {selected_function} completed successfully")
-                print(f"[RESPONSE] Length: {len(answer)} characters")
-                
+
+                func = self.function_map[
+                    selected_function
+                ]
+
+                print(
+                    f"[EXECUTION] Calling "
+                    f"{selected_function}..."
+                )
+
+
+                answer = func.invoke(
+                    self.user_input
+                )
+
+
+                print(
+                    f"[EXECUTION] "
+                    f"{selected_function} completed."
+                )
+
+                print(
+                    f"[RESPONSE] Length: "
+                    f"{len(answer)} characters"
+                )
+
+
                 return {
                     "output": answer,
-                    "intermediate_steps": f"LLM routed to tool: {selected_function} (with chat history context)"
+                    "intermediate_steps":
+                        f"LLM routed to "
+                        f"{selected_function}",
                 }
-            else:
-                # Fallback to general response
-                print(f"[FALLBACK] Using direct Ollama response")
-                prompt = f"""Answer the following question correctly and concisely:
 
-Question: {self.user_input}
 
-Answer:"""
-                
-                response = query_ollama(prompt)
-                return {
-                    "output": response,
-                    "intermediate_steps": "Direct response from Ollama (no tool routing)"
-                }
-                
-        except Exception as e:
-            print(f"[ERROR] Exception in generate_answer: {str(e)}")
+            # =================================================
+            # SAFETY FALLBACK
+            # =================================================
+
+            print(
+                "[FALLBACK] No valid tool selected."
+            )
+
+            response = query_openai(
+                self.user_input
+            )
+
             return {
-                "output": f"I apologize, but I encountered an error while processing your question: {str(e)}",
-                "intermediate_steps": f"Error occurred: {str(e)}"
+                "output": response,
+                "intermediate_steps":
+                    "Direct OpenAI response",
             }
 
-def invoke(message, history):
+
+        except Exception as exc:
+
+            print(
+                f"[ERROR] Exception in "
+                f"generate_answer: {exc}"
+            )
+
+            return {
+                "output":
+                    "I encountered an error while "
+                    "processing your question: "
+                    f"{exc}",
+
+                "intermediate_steps":
+                    f"Error: {exc}",
+            }
+
+
+# ============================================================
+# GRADIO INVOKE
+# ============================================================
+
+def invoke(
+    message,
+    history,
+):
+
     try:
-        print(f"\n[INVOKE] New request received: {message}")
-        
-        # Format history for the agent
+
+        print(
+            f"\n[INVOKE] New request: "
+            f"{message}"
+        )
+
+
+        history = history or []
+
+
+        # =====================================================
+        # NORMALIZE HISTORY
+        # =====================================================
+
         formatted_history = []
-        for user_msg, assistant_msg in history:
+
+
+        for entry in history:
+
+            # New Gradio message format
+            if isinstance(entry, dict):
+
+                role = entry.get("role")
+                content = entry.get("content")
+
+                if (
+                    role in {"user", "assistant"}
+                    and content
+                ):
+
+                    formatted_history.append(
+                        {
+                            "role": role,
+                            "content": str(content),
+                        }
+                    )
+
+                continue
+
+
+            # Old tuple format
+            try:
+
+                user_msg, assistant_msg = entry
+
+            except (
+                TypeError,
+                ValueError,
+            ):
+
+                continue
+
+
             if user_msg:
-                formatted_history.append({"role": "user", "content": user_msg})
+
+                formatted_history.append(
+                    {
+                        "role": "user",
+                        "content": str(user_msg),
+                    }
+                )
+
+
             if assistant_msg:
-                formatted_history.append({"role": "assistant", "content": assistant_msg})
 
-        # Create agent instance
-        agent = BaseLLM(message=message, history=formatted_history)
-        
-        # Generate response
+                formatted_history.append(
+                    {
+                        "role": "assistant",
+                        "content": str(assistant_msg),
+                    }
+                )
+
+
+        # =====================================================
+        # CREATE AGENT
+        # =====================================================
+
+        agent = BaseLLM(
+            message=message,
+            history=formatted_history,
+        )
+
+
+        # =====================================================
+        # GENERATE
+        # =====================================================
+
         output = agent.generate_answer()
-        main_output = str(output['output'])
-        intermediate_steps = str(output['intermediate_steps'])
 
-        # Update history
-        updated_history = history + [(message, main_output)]
-        
-        print(f"[INVOKE] Response generated successfully")
-        return updated_history, intermediate_steps
-        
-    except Exception as e:
-        print(f"[INVOKE ERROR] {str(e)}")
-        error_msg = f"Sorry, I encountered an error: {str(e)}"
-        updated_history = history + [(message, error_msg)]
-        return updated_history, f"Error in invoke function: {str(e)}"
+        main_output = str(
+            output["output"]
+        )
+
+        intermediate_steps = str(
+            output["intermediate_steps"]
+        )
+
+
+        # =====================================================
+        # UPDATE HISTORY
+        # =====================================================
+
+        updated_history = [
+            *history,
+
+            {
+                "role": "user",
+                "content": message,
+            },
+
+            {
+                "role": "assistant",
+                "content": main_output,
+            },
+        ]
+
+
+        print(
+            "[INVOKE] Response generated successfully."
+        )
+
+
+        return (
+            updated_history,
+            intermediate_steps,
+        )
+
+
+    except Exception as exc:
+
+        print(
+            f"[INVOKE ERROR] {exc}"
+        )
+
+        error_msg = (
+            "Sorry, I encountered an error: "
+            f"{exc}"
+        )
+
+
+        history = history or []
+
+
+        updated_history = [
+            *history,
+
+            {
+                "role": "user",
+                "content": message,
+            },
+
+            {
+                "role": "assistant",
+                "content": error_msg,
+            },
+        ]
+
+
+        return (
+            updated_history,
+            f"Error in invoke function: {exc}",
+        )

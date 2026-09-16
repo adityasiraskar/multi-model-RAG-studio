@@ -18,7 +18,7 @@ THRESHOLD = 0.7
 
 def run(rag):
     # 1. LOAD queries + ideal answers
-    goldens = load_goldens(GOLDEN_PATH)[:10]   # limit to 10 for speed; remove this slice for full eval
+    goldens = load_goldens(GOLDEN_PATH)   # limit to 10 for speed; remove this slice for full eval
 
     # 2. RUN THE INJECTED PIPELINE per query, build a test case from LIVE output
     test_cases = []
@@ -54,6 +54,7 @@ def run(rag):
         threshold=THRESHOLD,
         model=JUDGE_MODEL,
         strict_mode=False,
+        async_mode=False
     )
 
     # 3b. COMPLETENESS --- reference-based, judges COVERAGE (not correctness)
@@ -75,6 +76,7 @@ def run(rag):
         threshold=THRESHOLD,
         model=JUDGE_MODEL,
         strict_mode=False,
+        async_mode=False
     )
 
     # 3c. STYLE --- reference-free, judges TONE only (note: no EXPECTED_OUTPUT)
@@ -98,6 +100,7 @@ def run(rag):
         threshold=THRESHOLD,
         model=JUDGE_MODEL,
         strict_mode=False,
+        async_mode=False
     )
 
     # 4. EVALUATE --- all three together
