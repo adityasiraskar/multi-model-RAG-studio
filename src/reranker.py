@@ -12,7 +12,7 @@ from llm_pipe.Ingestion_Retrieval.pinecone_retrieval import (
 
 
 class RerankingRetriever:
-    """Expose the existing Pinecone search as ``invoke(query) -> Documents``."""
+    """Retrieve Pinecone candidates and cross-encoder rerank them for evaluation."""
 
     def __init__(self, index=None, embeddings_model=None):
         self.index = index
@@ -33,7 +33,14 @@ class RerankingRetriever:
         if not company:
             return []
 
-        result = process_query(self.index, self.embeddings_model, company, query)
+        result = process_query(
+            self.index,
+            self.embeddings_model,
+            company,
+            query,
+            candidate_k=30,
+            final_k=5,
+        )
         documents = []
         for document_id, pages in result.get("results", {}).items():
             for page_number, matches in pages.items():
@@ -45,6 +52,8 @@ class RerankingRetriever:
                                 "document_id": document_id,
                                 "page": page_number,
                                 "score": match.get("score"),
+                                "dense_score": match.get("dense_score"),
+                                "rerank_score": match.get("rerank_score"),
                                 "content_type": match.get("content_type", "text"),
                             },
                         )

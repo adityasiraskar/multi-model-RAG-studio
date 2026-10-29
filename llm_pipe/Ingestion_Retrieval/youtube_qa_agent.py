@@ -1,6 +1,7 @@
 from youtube_transcript_api import YouTubeTranscriptApi
 import requests
 import threading
+from config import app_config
 import re
 import json
 import os
@@ -59,7 +60,8 @@ def query_ollama(prompt, model="mistral"):
         ],
         "stream": False
     }
-    response = requests.post("http://localhost:11434/api/chat", json=payload, timeout=180)
+    ollama_base = app_config.OLLAMA_API_BASE.rstrip("/")
+    response = requests.post(f"{ollama_base}/chat", json=payload, timeout=180)
     response.raise_for_status()
     return response.json()["message"]["content"]
 
@@ -93,4 +95,47 @@ def summarize_transcript(url, model):
         return query_ollama(prompt, model)
     except Exception as e:
         return f"Error from Ollama: {e}"
+
+
+def answer_or_summarize_youtube(message, url=None, model="phi3:mini"):
+    """Route a pasted-video request synchronously: answer a question or summarize."""
+    candidate_url = url or extract_url(message)
+    if not candidate_url:
+        return "Please include a valid YouTube URL."
+
+    video_id = extract_video_id(candidate_url)
+    if not video_id:
+        return "Please include a valid YouTube URL containing a video ID."
+
+    if video_id not in video_context:
+        try:
+            transcript = YouTubeTranscriptApi().fetch(video_id)
+            text = " ".join(
+                entry.text if hasattr(entry, "text") else entry["text"]
+                for entry in transcript
+            )
+            video_context[video_id] = text
+            save_cache()
+        except Exception as exc:
+            return f"Error fetching YouTube transcript: {exc}"
+
+    context = video_context[video_id]
+    if context.startswith("Error"):
+        return context
+
+    question = re.sub(r'https?://[^\s]+', '', message, flags=re.I).strip()
+    if not question or question.lower() in {"youtube", "video", "watch", "summary", "summarize", "summarise"}:
+        prompt = f"Summarize the following YouTube video transcript:\n\n{context[:4000]}"
+    else:
+        prompt = f"Answer using only the following YouTube transcript:\n\nTranscript:\n{context[:4000]}\n\nQuestion: {question}"
+
+    try:
+        return query_ollama(prompt, model)
+    except Exception as exc:
+        return f"Error from Ollama: {exc}"
+
+
+def extract_url(message):
+    match = re.search(r'https?://(?:www\.)?(?:youtube\.com|youtu\.be)/[^\s]+', str(message), flags=re.I)
+    return match.group(0).rstrip(".,)]}") if match else None
 

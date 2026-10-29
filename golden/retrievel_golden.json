@@ -2,122 +2,121 @@
   {
     "id": "g001",
     "query": "How is Amazon organized into reportable business segments, and what does each segment primarily include?",
-    "ideal_answer": "Amazon has three reportable segments: North America, International, and Amazon Web Services (AWS). North America primarily includes retail sales of consumer products, including sales by third-party sellers, and subscriptions through North America-focused online and physical stores, including export sales from those stores. International primarily includes retail sales of consumer products, including sales by third-party sellers, and subscriptions through internationally focused online stores, including certain export sales. AWS consists of global sales of compute, storage, database, and other services to start-ups, enterprises, government agencies, and academic institutions.",
-    "source": "Amazon 2022 Form 10-K"
+    "ideal_answer": "Amazon has three reportable segments: North America, International, and Amazon Web Services (AWS). North America primarily includes retail sales of consumer products and subscriptions through North America-focused online and physical stores. International primarily includes retail sales and subscriptions through internationally focused online stores. AWS includes global sales of compute, storage, database, and other services.",
+    "source_pdf": "Amazon10k2022.pdf"
   },
   {
     "id": "g002",
-    "query": "What were Amazon's 2022 net sales and operating income or loss for North America, International, and AWS?",
-    "ideal_answer": "In 2022, Amazon's North America segment generated $315.880 billion in net sales and an operating loss of $2.847 billion. The International segment generated $118.007 billion in net sales and an operating loss of $7.746 billion. AWS generated $80.096 billion in net sales and $22.841 billion in operating income. At the consolidated level, Amazon reported $513.983 billion in net sales and $12.248 billion in operating income.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "What were Amazon net sales by segment in 2022 and what percentage of consolidated sales did each represent?",
+    "ideal_answer": "In 2022, North America net sales were $315.880 billion (61%), International net sales were $118.007 billion (23%), and AWS net sales were $80.096 billion (16%). Consolidated net sales totaled $513.983 billion.",
+    "source_pdf": "Amazon10k2022.pdf"
   },
   {
     "id": "g003",
-    "query": "Why did Amazon's International sales decline in 2022 while AWS sales continued to grow?",
-    "ideal_answer": "International sales declined 8% in 2022 primarily because of unfavorable foreign currency exchange-rate movements, which reduced International net sales by $15.0 billion. This was partially offset by increased unit sales, including sales by third-party sellers, advertising sales, and subscription services. AWS sales increased 29% in 2022, primarily because of increased customer usage, partially offset by pricing changes driven mainly by long-term customer contracts.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "What happened to Amazon operating income or loss by segment in 2021 and 2022?",
+    "ideal_answer": "Amazon North America moved from $7.271 billion operating income in 2021 to a $2.847 billion operating loss in 2022. International operating losses increased from $924 million to $7.746 billion. AWS operating income increased from $18.532 billion to $22.841 billion. Consolidated operating income decreased from $24.879 billion to $12.248 billion.",
+    "source_pdf": "Amazon10k2022.pdf"
   },
   {
     "id": "g004",
-    "query": "What drove Amazon's 2022 operating losses in North America and International, and what drove the increase in AWS operating income?",
-    "ideal_answer": "North America's 2022 operating loss, compared with operating income in 2021, was driven primarily by higher fulfillment and shipping costs, including investments in the fulfillment network, higher transportation costs, higher wage rates and incentives, increased technology and content costs, and growth in certain other operating expenses. These effects were partially offset by higher unit sales, including third-party seller sales, and advertising sales. The larger International operating loss was driven by similar increases in fulfillment, shipping, transportation, wage, technology, content, and other operating costs, partially offset by increased advertising and unit sales. AWS operating income increased primarily because of higher sales and cost-structure productivity, including lower depreciation and amortization from longer estimated useful lives for servers and networking equipment, partially offset by higher payroll and technology-infrastructure spending.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "What were Amazon major operating expense categories in 2022 and which was largest?",
+    "ideal_answer": "In 2022, Amazon recorded cost of sales of $288.831 billion, fulfillment costs of $84.299 billion, technology and content costs of $73.213 billion, sales and marketing costs of $42.238 billion, general and administrative costs of $11.891 billion, and other operating expense of $1.263 billion. Cost of sales was the largest category.",
+    "source_pdf": "Amazon10k2022.pdf"
   },
   {
     "id": "g005",
-    "query": "How much did Amazon spend on cash capital expenditures in 2022, and what were those investments mainly used for?",
-    "ideal_answer": "Amazon's cash capital expenditures were $58.3 billion in 2022, up from $55.4 billion in 2021. These expenditures primarily reflected investments in technology infrastructure, the majority of which supported AWS business growth, and additional capacity for Amazon's fulfillment network. Amazon stated that it expected to continue these investments over time, with increased spending on technology infrastructure.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "How much did Amazon spend on cash capital expenditures in 2022 and what mainly drove that spending?",
+    "ideal_answer": "Amazon spent $58.3 billion on cash capital expenditures in 2022, compared with $55.4 billion in 2021. The spending mainly reflected technology infrastructure investments, most supporting AWS growth, and additional capacity for the fulfillment network.",
+    "source_pdf": "Amazon10k2022.pdf"
   },
   {
     "id": "g006",
-    "query": "How is Amazon organized into reportable business segments, and what does each segment primarily include?",
-    "ideal_answer": "Amazon has three reportable segments: North America, International, and Amazon Web Services (AWS). North America primarily includes retail sales of consumer products, including sales by third-party sellers, and subscriptions through North America-focused online and physical stores, including export sales from those stores. International primarily includes retail sales of consumer products, including sales by third-party sellers, and subscriptions through internationally focused online stores, including certain export sales. AWS consists of global sales of compute, storage, database, and other services to start-ups, enterprises, government agencies, and academic institutions.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "What are Apple's five reportable geographic segments, and which countries are included in each?",
+    "ideal_answer": "Apple reports Americas, Europe, Greater China, Japan, and Rest of Asia Pacific. Americas includes North and South America; Europe includes European countries, India, the Middle East, and Africa; Greater China includes mainland China, Hong Kong, and Taiwan; and Rest of Asia Pacific includes Australia and Asian countries outside the other segments.",
+    "source_pdf": "Apple_10-K-2021.pdf"
   },
   {
     "id": "g007",
-    "query": "What were Amazon's 2022 net sales and operating income or loss for North America, International, and AWS?",
-    "ideal_answer": "In 2022, Amazon's North America segment generated $315.880 billion in net sales and an operating loss of $2.847 billion. The International segment generated $118.007 billion in net sales and an operating loss of $7.746 billion. AWS generated $80.096 billion in net sales and $22.841 billion in operating income. At the consolidated level, Amazon reported $513.983 billion in net sales and $12.248 billion in operating income.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "Which Apple geographic segment had the highest net sales in 2021, and what were all five segment totals?",
+    "ideal_answer": "Americas had the highest 2021 net sales at $153.306 billion. Europe was $89.307 billion, Greater China $68.366 billion, Japan $28.482 billion, and Rest of Asia Pacific $26.356 billion. Total net sales were $365.817 billion.",
+    "source_pdf": "Apple_10-K-2021.pdf"
   },
   {
     "id": "g008",
-    "query": "Why did Amazon's International sales decline in 2022 while AWS sales continued to grow?",
-    "ideal_answer": "International sales declined 8% in 2022 primarily because of unfavorable foreign currency exchange-rate movements, which reduced International net sales by $15.0 billion. This was partially offset by increased unit sales, including sales by third-party sellers, advertising sales, and subscription services. AWS sales increased 29% in 2022, primarily because of increased customer usage, partially offset by pricing changes driven mainly by long-term customer contracts.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "How do Apple's 2021 Products and Services gross margins compare?",
+    "ideal_answer": "In 2021, Products gross margin was $105.126 billion with a margin percentage of 35.3%. Services gross margin was $47.710 billion with a margin percentage of 69.7%. Total gross margin was $152.836 billion, or 41.8% of net sales.",
+    "source_pdf": "Apple_10-K-2021.pdf"
   },
   {
     "id": "g009",
-    "query": "What drove Amazon's 2022 operating losses in North America and International, and what drove the increase in AWS operating income?",
-    "ideal_answer": "North America's 2022 operating loss, compared with operating income in 2021, was driven primarily by higher fulfillment and shipping costs, including investments in the fulfillment network, higher transportation costs, higher wage rates and incentives, increased technology and content costs, and growth in certain other operating expenses. These effects were partially offset by higher unit sales, including third-party seller sales, and advertising sales. The larger International operating loss was driven by similar increases in fulfillment, shipping, transportation, wage, technology, content, and other operating costs, partially offset by increased advertising and unit sales. AWS operating income increased primarily because of higher sales and cost-structure productivity, including lower depreciation and amortization from longer estimated useful lives for servers and networking equipment, partially offset by higher payroll and technology-infrastructure spending.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "What product and service categories made up Apple's 2021 net sales?",
+    "ideal_answer": "Apple disaggregated 2021 net sales into iPhone $191.973 billion, Mac $35.190 billion, iPad $31.862 billion, Wearables, Home and Accessories $38.367 billion, and Services $68.425 billion. Total net sales were $365.817 billion.",
+    "source_pdf": "Apple_10-K-2021.pdf"
   },
   {
     "id": "g010",
-    "query": "How much did Amazon spend on cash capital expenditures in 2022, and what were those investments mainly used for?",
-    "ideal_answer": "Amazon's cash capital expenditures were $58.3 billion in 2022, up from $55.4 billion in 2021. These expenditures primarily reflected investments in technology infrastructure, the majority of which supported AWS business growth, and additional capacity for Amazon's fulfillment network. Amazon stated that it expected to continue these investments over time, with increased spending on technology infrastructure.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "How does Apple determine operating income for its geographic reportable segments?",
+    "ideal_answer": "Apple evaluates geographic segments using net sales and operating income. Segment net sales are generally based on customer location or sales through Apple retail stores in that location. Operating income includes segment net sales, related cost of sales, and directly attributable operating expenses, while excluding corporate items such as R&D, corporate marketing, certain share-based compensation, income taxes, and various nonrecurring or centrally managed costs.",
+    "source_pdf": "Apple_10-K-2021.pdf"
   },
-   
   {
     "id": "g011",
-    "query": "How is Amazon organized into reportable business segments, and what does each segment primarily include?",
-    "ideal_answer": "Amazon has three reportable segments: North America, International, and Amazon Web Services (AWS). North America primarily includes retail sales of consumer products, including sales by third-party sellers, and subscriptions through North America-focused online and physical stores, including export sales from those stores. International primarily includes retail sales of consumer products, including sales by third-party sellers, and subscriptions through internationally focused online stores, including certain export sales. AWS consists of global sales of compute, storage, database, and other services to start-ups, enterprises, government agencies, and academic institutions.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "What are NVIDIA's two reportable segments, and what businesses are included in each?",
+    "ideal_answer": "NVIDIA reports Compute & Networking and Graphics. Compute & Networking includes the Data Center accelerated computing platform, networking, automotive AI Cockpit, autonomous driving solutions, electric vehicle platforms, Jetson, NVIDIA AI Enterprise and software, and cryptocurrency mining processors. Graphics includes GeForce GPUs, GeForce NOW, workstation Quadro/NVIDIA RTX GPUs, vGPU software, automotive infotainment, and Omniverse Enterprise.",
+    "source_pdf": "Nvidia.pdf"
   },
   {
     "id": "g012",
-    "query": "What were Amazon's 2022 net sales and operating income or loss for North America, International, and AWS?",
-    "ideal_answer": "In 2022, Amazon's North America segment generated $315.880 billion in net sales and an operating loss of $2.847 billion. The International segment generated $118.007 billion in net sales and an operating loss of $7.746 billion. AWS generated $80.096 billion in net sales and $22.841 billion in operating income. At the consolidated level, Amazon reported $513.983 billion in net sales and $12.248 billion in operating income.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "What were NVIDIA segment revenues in fiscal 2023 and how did they change from fiscal 2022?",
+    "ideal_answer": "Compute & Networking revenue was $15.068 billion in fiscal 2023, up $4.022 billion or 36% from $11.046 billion in fiscal 2022. Graphics revenue was $11.906 billion, down $3.962 billion or 25% from $15.868 billion. Total revenue was $26.974 billion versus $26.914 billion.",
+    "source_pdf": "Nvidia.pdf"
   },
   {
     "id": "g013",
-    "query": "Why did Amazon's International sales decline in 2022 while AWS sales continued to grow?",
-    "ideal_answer": "International sales declined 8% in 2022 primarily because of unfavorable foreign currency exchange-rate movements, which reduced International net sales by $15.0 billion. This was partially offset by increased unit sales, including sales by third-party sellers, advertising sales, and subscription services. AWS sales increased 29% in 2022, primarily because of increased customer usage, partially offset by pricing changes driven mainly by long-term customer contracts.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "Why did NVIDIA gross margin decline in fiscal 2023?",
+    "ideal_answer": "Gross margin declined to 56.9% from 64.9% in fiscal 2022, primarily because NVIDIA recorded $2.17 billion of inventory provisions: approximately $1.04 billion for inventory on hand and $1.13 billion for purchase obligations above demand projections. Together with sales of previously written-off inventory, these provisions reduced fiscal 2023 gross margin by 7.5 percentage points.",
+    "source_pdf": "Nvidia.pdf"
   },
   {
     "id": "g014",
-    "query": "What drove Amazon's 2022 operating losses in North America and International, and what drove the increase in AWS operating income?",
-    "ideal_answer": "North America's 2022 operating loss, compared with operating income in 2021, was driven primarily by higher fulfillment and shipping costs, including investments in the fulfillment network, higher transportation costs, higher wage rates and incentives, increased technology and content costs, and growth in certain other operating expenses. These effects were partially offset by higher unit sales, including third-party seller sales, and advertising sales. The larger International operating loss was driven by similar increases in fulfillment, shipping, transportation, wage, technology, content, and other operating costs, partially offset by increased advertising and unit sales. AWS operating income increased primarily because of higher sales and cost-structure productivity, including lower depreciation and amortization from longer estimated useful lives for servers and networking equipment, partially offset by higher payroll and technology-infrastructure spending.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "What were NVIDIA four major market revenues in fiscal 2023?",
+    "ideal_answer": "NVIDIA reported fiscal 2023 revenue of $15.01 billion for Data Center, $9.07 billion for Gaming, $1.54 billion for Professional Visualization, and $903 million for Automotive.",
+    "source_pdf": "Nvidia.pdf"
   },
   {
     "id": "g015",
-    "query": "How much did Amazon spend on cash capital expenditures in 2022, and what were those investments mainly used for?",
-    "ideal_answer": "Amazon's cash capital expenditures were $58.3 billion in 2022, up from $55.4 billion in 2021. These expenditures primarily reflected investments in technology infrastructure, the majority of which supported AWS business growth, and additional capacity for Amazon's fulfillment network. Amazon stated that it expected to continue these investments over time, with increased spending on technology infrastructure.",
-    "source": "Amazon 2022 Form 10-K"
+    "query": "Why did NVIDIA Gaming revenue decline in fiscal 2023?",
+    "ideal_answer": "Gaming revenue declined 27% to $9.07 billion. Economic conditions left excess inventory with channel partners, so NVIDIA introduced channel pricing programs and reduced GPU shipments to lower inventory. Lower sell-in and weaker demand associated with macroeconomic conditions, including COVID-19-related China disruptions, contributed to the decline.",
+    "source_pdf": "Nvidia.pdf"
   },
   {
     "id": "g016",
-    "query": "What is NVIDIA's platform strategy, and why is it central to the company's business model?",
-    "ideal_answer": "NVIDIA's platform strategy combines hardware, systems, software, algorithms, libraries, and services into unified computing platforms. Rather than building separate technologies for each market, NVIDIA uses a common GPU architecture and software stacks that can be adapted for gaming, AI, data science, robotics, autonomous vehicles, cloud computing, and other computationally intensive applications. The programmable nature of its architecture allows it to serve multiple multi-billion-dollar markets while strengthening its developer ecosystem and increasing customer value.",
-    "source": "NVIDIA 2023 Form 10-K"
+    "query": "What are Tesla's two reportable segments, and what does each include?",
+    "ideal_answer": "Tesla reports Automotive and Energy Generation and Storage. Automotive includes design, development, manufacturing, sales and leasing of electric vehicles and sales of regulatory credits. Energy Generation and Storage includes solar generation and energy storage products, installations, sales and leasing, related services, and solar incentives.",
+    "source_pdf": "Tesla.pdf"
   },
   {
     "id": "g017",
-    "query": "How does NVIDIA describe the evolution of GPUs from graphics processors to AI computing platforms?",
-    "ideal_answer": "NVIDIA explains that GPUs were originally created to simulate human imagination through computer graphics for video games and films. Today, GPUs simulate human intelligence by powering deep learning and machine learning algorithms with thousands of parallel computing cores. This enables applications such as recommendation systems, large language models, generative AI, robotics, autonomous vehicles, scientific computing, and high-performance computing workloads that are difficult to run efficiently on traditional CPU-based systems.",
-    "source": "NVIDIA 2023 Form 10-K"
+    "query": "What were Tesla's 2022 Automotive and energy segment revenues?",
+    "ideal_answer": "Tesla generated $77.553 billion of automotive and services-and-other revenue in 2022 and $3.909 billion from energy generation and storage. Total company revenue was $81.462 billion.",
+    "source_pdf": "Tesla.pdf"
   },
   {
     "id": "g018",
-    "query": "What major markets and industries does NVIDIA serve through its accelerated computing platform?",
-    "ideal_answer": "NVIDIA serves gaming, data centers, artificial intelligence, scientific computing, robotics, autonomous vehicles, healthcare, financial services, cloud computing, professional visualization, and the metaverse. Its GPUs and networking platforms accelerate cloud services such as search, recommendations, social networking, online shopping, translation, AI assistants, and cloud computing, while enterprises use NVIDIA platforms for applications including medical imaging, drug discovery, fraud detection, industrial automation, and autonomous driving.",
-    "source": "NVIDIA 2023 Form 10-K"
+    "query": "Why did Tesla's automotive sales revenue increase in 2022?",
+    "ideal_answer": "Automotive sales revenue rose $23.09 billion or 52% primarily because deliveries increased by 347,024 Model 3 and Model Y vehicles and 38,183 Model S and Model X vehicles. Production ramping at existing and new factories, a higher average selling price mix, and $324 million of Full Self-Driving revenue from the North America general release also contributed.",
+    "source_pdf": "Tesla.pdf"
   },
   {
     "id": "g019",
-    "query": "Why does NVIDIA consider CUDA a major milestone in its technology strategy?",
-    "ideal_answer": "NVIDIA introduced the CUDA programming model in 2006 to make GPU parallel processing available for general-purpose computing. CUDA enabled developers to accelerate demanding high-performance computing applications in fields such as aerospace, bioscience, mechanical simulation, fluid dynamics, genomics, and energy exploration. It transformed GPUs from graphics processors into programmable computing platforms and became a foundation for modern AI and HPC ecosystems.",
-    "source": "NVIDIA 2023 Form 10-K"
+    "query": "What products or services were included in Tesla's Services and other revenue in 2022?",
+    "ideal_answer": "Services and other revenue included non-warranty after-sales service and parts, paid Supercharging, used-vehicle sales, retail merchandise, and vehicle insurance revenue.",
+    "source_pdf": "Tesla.pdf"
   },
   {
     "id": "g020",
-    "query": "How does NVIDIA explain the role of research and development and innovation in maintaining its competitive advantage?",
-    "ideal_answer": "NVIDIA states that innovation is at the core of its business and that it has invested more than $37 billion in research and development since its inception. These investments led to inventions such as the GPU and CUDA, which established NVIDIA as a leader in computer graphics and accelerated computing. The company argues that continued R&D enables advances in AI, networking, supercomputing, robotics, autonomous vehicles, and software platforms, allowing accelerated computing to improve performance beyond the pace of traditional CPU scaling described by Moore's Law.",
-    "source": "NVIDIA 2023 Form 10-K"
+    "query": "What were Tesla's 2022 operating, investing, and financing cash flows and capital expenditures?",
+    "ideal_answer": "Tesla generated $14.724 billion of operating cash flow, used $11.973 billion for investing activities, and used $3.527 billion for financing activities in 2022. Capital expenditures were $7.16 billion in 2022, compared with $6.48 billion in 2021.",
+    "source_pdf": "Tesla.pdf"
   }
 ]

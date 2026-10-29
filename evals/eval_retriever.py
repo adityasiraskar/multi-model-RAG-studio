@@ -48,10 +48,12 @@ def run(retriever):
         metrics=metrics,
         hyperparameters={
             "retriever": "reranker",          # vs "reranked" when you swap it in
-            "embedding_model": "text-embedding-3-large",
-            "chunk_size": 1000,
+            "embedding_model": "all-mpnet-base-v2",
+            "chunk_size": 700,
             "chunk_overlap": 150,
-            "top_k": 3,
+            "dense_candidate_k": 30,
+            "reranked_top_k": 5,
+            "reranker_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
             "judge_model": JUDGE_MODEL,
             "golden_set": GOLDEN_PATH,
         },

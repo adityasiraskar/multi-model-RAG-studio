@@ -18,6 +18,10 @@ from llm_pipe.Ingestion_Retrieval.pinecone_retrieval import (
     init_pinecone_and_embeddings,
     process_query,
 )
+from llm_pipe.Ingestion_Retrieval.youtube_qa_agent import (
+    answer_or_summarize_youtube,
+    extract_url,
+)
 
 
 # ============================================================
@@ -376,32 +380,24 @@ def format_video_info(videos):
 @tool
 def youtube_url(question: str) -> str:
     """
-    Search YouTube when the user explicitly asks for videos.
+    Analyze a pasted YouTube URL, or search for videos when no URL is provided.
+    A URL without a question is summarized as a safe fallback.
     """
+    url = extract_url(question)
+    if url:
+        return answer_or_summarize_youtube(question, url=url)
 
     try:
-
         if YoutubeSearch is None:
+            return "YouTube search is unavailable because the youtube_search package is not installed."
 
-            return (
-                "YouTube search is unavailable because "
-                "the youtube_search package is not installed."
-            )
-
-        results = YoutubeSearch(
-            question,
-            max_results=4,
-        ).to_dict()
-
+        results = YoutubeSearch(question, max_results=4).to_dict()
         if not results:
             return "No relevant YouTube videos found."
-
         return format_video_info(results)
 
     except Exception as exc:
-
         return f"Error searching YouTube: {exc}"
-
 
 # ============================================================
 # WEB SEARCH

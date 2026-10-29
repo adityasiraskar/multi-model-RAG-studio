@@ -1,3 +1,7 @@
+import re
+
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+
 from llm_pipe.multi_agent_tools import (
     query_openai,
     get_answer_apple,
@@ -9,6 +13,7 @@ from llm_pipe.multi_agent_tools import (
 )
 
 from config import app_config
+from llm_pipe.sql_agent import process_query_sql
 
 
 # ============================================================
@@ -21,8 +26,71 @@ VALID_TOOLS = (
     "get_answer_amazon",
     "get_answer_tesla",
     "youtube_url",
+    "query_csv",
     "web_search",
 )
+
+
+# ============================================================
+# LANGCHAIN CHAT HISTORY NORMALIZATION
+# ============================================================
+
+
+def _message_content(message: BaseMessage) -> str:
+    """Return plain text for LangChain message content."""
+    content = message.content
+    return content if isinstance(content, str) else str(content)
+
+
+def normalize_chat_history(history=None) -> list[BaseMessage]:
+    """
+    Convert Gradio dictionary/tuple history and LangChain messages into a
+    consistent LangChain message list for routing and prompt construction.
+    """
+    normalized: list[BaseMessage] = []
+
+    for entry in history or []:
+        if isinstance(entry, BaseMessage):
+            normalized.append(entry)
+            continue
+
+        if isinstance(entry, dict):
+            role = str(entry.get("role", "")).lower()
+            content = entry.get("content")
+            if content:
+                if role == "user":
+                    normalized.append(HumanMessage(content=str(content)))
+                elif role == "assistant":
+                    normalized.append(AIMessage(content=str(content)))
+            continue
+
+        try:
+            user_message, assistant_message = entry
+        except (TypeError, ValueError):
+            continue
+
+        if user_message:
+            normalized.append(HumanMessage(content=str(user_message)))
+        if assistant_message:
+            normalized.append(AIMessage(content=str(assistant_message)))
+
+    return normalized
+
+
+def format_history_context(history=None, max_messages: int = 8) -> str:
+    """Build a bounded, readable history section for the routing prompt."""
+    messages = normalize_chat_history(history)[-max_messages:]
+    if not messages:
+        return "RECENT CONVERSATION:\n(none)\n"
+
+    lines = ["RECENT CONVERSATION:"]
+    for message in messages:
+        role = "USER" if isinstance(message, HumanMessage) else "ASSISTANT"
+        content = _message_content(message).strip()
+        if content:
+            lines.append(f"{role}: {content[:600]}")
+
+    return "\n".join(lines) + "\n"
 
 
 # ============================================================
@@ -32,6 +100,7 @@ VALID_TOOLS = (
 def llm_route_question(
     question: str,
     chat_history: list = None,
+    has_csv: bool = False,
 ) -> str:
     """
     Decide which tool should answer the question.
@@ -44,40 +113,60 @@ def llm_route_question(
     4. Current/external/general information -> web
     """
 
-    history_context = ""
+    # Deterministic routing guards run before the classifier. This makes
+    # URL/CSV intent reliable even if a small local model formats its answer badly.
+    lowered = question.lower().strip()
+    youtube_url_match = re.search(
+        r"https?://[^\s]*(?:youtube\.com|youtu\.be)[^\s]*",
+        question,
+        flags=re.I,
+    )
+    if youtube_url_match:
+        return "youtube_url"
 
-    if chat_history:
+    # An uploaded CSV must take precedence over vague keyword/LLM routing.
+    # This makes arbitrary natural-language data questions such as
+    # "give me the insights" route to the SQL tool reliably.
+    if has_csv:
+        return "query_csv"
 
-        recent_history = chat_history[-8:]
+    csv_intent = any(term in lowered for term in (
+        "csv", "spreadsheet", "dataset", "column", "row",
+        "average", "sum", "count", "maximum", "minimum",
+        "group by", "top ", "sort ", "filter ", "show me the data",
+    ))
 
-        history_context = (
-            "RECENT CONVERSATION:\n"
-        )
+    company_tool_guards = {
+        "apple": "get_answer_apple",
+        "nvidia": "get_answer_nvidia",
+        "amazon": "get_answer_amazon",
+        "tesla": "get_answer_tesla",
+    }
+    for company, tool_name in company_tool_guards.items():
+        if re.search(rf"\b{company}\b", lowered):
+            return tool_name
 
-        for entry in recent_history:
+    history_context = format_history_context(chat_history, max_messages=8)
 
-            role = entry.get("role", "")
-            content = entry.get("content", "")
 
-            if not content:
-                continue
-
-            history_context += (
-                f"{role.upper()}: "
-                f"{content[:600]}\n"
-            )
-
-    else:
-
-        history_context = (
-            "RECENT CONVERSATION:\n"
-            "(none)\n"
-        )
-
+    input_context = (
+        "ATTACHED INPUTS:\n"
+        f"- CSV file: {'YES' if has_csv else 'NO'}\n"
+        f"- YouTube URL: {'YES' if youtube_url_match else 'NO'}\n"
+    )
 
     routing_prompt = f"""
 You are a STRICT routing classifier for a financial
 document-question-answering application.
+
+{input_context}
+
+ROUTING PRIORITY:
+1. A YouTube URL wins unless the user explicitly asks for a finance PDF or CSV action.
+2. If a CSV is attached and the question is about its rows, columns, values, totals,
+   averages, sorting, filtering, grouping, or comparisons, route to query_csv.
+3. An explicitly named PDF company or a clear follow-up about the four reports routes to that PDF.
+4. Current/external/news questions with no stronger PDF, CSV, or YouTube intent route to web_search.
 
 Your ONLY job is to select exactly ONE tool.
 
@@ -104,10 +193,14 @@ youtube_url
     YouTube video, tutorial video, demonstration, or
     something to watch.
 
+query_csv
+    Use when a CSV file is attached and the user asks to
+    analyze, query, filter, aggregate, compare, or summarize the data.
+
 web_search
     Use for current information, news, live information,
-    external information, or questions outside the
-    four PDF documents.
+    external information, or questions outside the four PDF documents
+    and without a stronger attached-file or URL intent.
 
 ============================================================
 CRITICAL PDF ROUTING RULE
@@ -181,11 +274,25 @@ Amazon -> get_answer_amazon
 Tesla -> get_answer_tesla
 
 ============================================================
+CSV ROUTING
+============================================================
+If a CSV file is attached, prefer query_csv when the user asks to
+query, analyze, filter, compare, aggregate, calculate, count, sort,
+visualize, summarize, or inspect rows and columns in the attached data.
+Do not route the same question to a PDF solely because it names a company.
+An attached CSV is the strongest explicit data intent.
+
+Examples:
+"What is the average sales value?"
+-> query_csv
+
+"Show the top 5 rows by revenue"
+-> query_csv
+
+============================================================
 WEB ROUTING
 ============================================================
-
 Use web_search when:
-
 - the user explicitly asks for latest/current information
 - the user asks about current stock price
 - the user asks about current news
@@ -207,15 +314,23 @@ Examples:
 ============================================================
 YOUTUBE ROUTING
 ============================================================
+Route to youtube_url when:
 
-If the user explicitly asks for a video:
+- the message contains a youtube.com or youtu.be URL
+- the user asks to watch, find, search, analyze, summarize, or answer a video
+- the message contains a YouTube URL and a question; analyze the transcript
+- the message contains only a YouTube URL; summarize it as the fallback behavior
 
-"Show me a video about Apple's products"
+Examples:
+
+"https://youtube.com/watch?v=... What did the speaker say about revenue?"
 -> youtube_url
 
-"Find a YouTube tutorial"
+"https://youtu.be/..."
 -> youtube_url
 
+"Find YouTube tutorials on financial analysis"
+-> youtube_url
 ============================================================
 IMPORTANT
 ============================================================
@@ -268,13 +383,17 @@ TOOL:
         # KEYWORD FALLBACK
         # ====================================================
 
-        if "youtube" in response:
+        if "youtube" in response or "youtu.be" in response:
 
             return "youtube_url"
 
         if "video" in response:
 
             return "youtube_url"
+
+        if has_csv and ("query_csv" in response or "csv" in response or "sql" in response):
+
+            return "query_csv"
 
         if "apple" in response:
 
@@ -305,6 +424,8 @@ TOOL:
             "[WARNING] Falling back to document routing."
         )
 
+        if has_csv and csv_intent:
+            return "query_csv"
         return _infer_company_from_history(
             chat_history
         ) or "web_search"
@@ -316,6 +437,8 @@ TOOL:
             f"[ERROR] LLM routing failed: {exc}"
         )
 
+        if has_csv and csv_intent:
+            return "query_csv"
         return (
             _infer_company_from_history(
                 chat_history
@@ -350,17 +473,12 @@ def _infer_company_from_history(
     }
 
 
-    # Search newest messages first
-    for entry in reversed(chat_history):
-
-        content = str(
-            entry.get("content", "")
-        ).lower()
+    # Search newest messages first, using normalized LangChain messages.
+    for message in reversed(normalize_chat_history(chat_history)):
+        content = _message_content(message).lower()
 
         for company, tool_name in company_tools.items():
-
-            if company in content:
-
+            if re.search(rf"\b{company}\b", content):
                 return tool_name
 
     return None
@@ -376,10 +494,12 @@ class BaseLLM:
         self,
         message: str,
         history,
+        csv_file=None,
     ):
 
         self.user_input = message
         self.history = history or []
+        self.csv_file = csv_file
 
 
         self.function_map = {
@@ -403,6 +523,33 @@ class BaseLLM:
                 web_search,
         }
 
+        self.function_map["query_csv"] = self._query_csv
+
+
+    def _query_csv(self, question: str) -> str:
+        if self.csv_file is None:
+            return "A CSV file was not attached. Please upload one in the CSV input area."
+
+        status, generated_sql, result = process_query_sql(
+            self.csv_file,
+            question,
+            app_config.OLLAMA_MODEL,
+            True,
+        )
+
+        if result is not None and hasattr(result, "empty") and not result.empty:
+            table = result.to_string(index=False)
+        elif result is not None:
+            table = "The query returned no rows."
+        else:
+            table = "The query did not return tabular data."
+
+        return (
+            f"{status}\n\n"
+            f"Generated SQL:\n```sql\n{generated_sql}\n```\n\n"
+            f"Result:\n{table}"
+        )
+
 
     def generate_answer(self):
 
@@ -411,6 +558,7 @@ class BaseLLM:
             selected_function = llm_route_question(
                 self.user_input,
                 self.history,
+                has_csv=self.csv_file is not None,
             )
 
 
@@ -454,9 +602,12 @@ class BaseLLM:
                 )
 
 
-                answer = func.invoke(
-                    self.user_input
-                )
+                if selected_function == "query_csv":
+                    answer = func(self.user_input)
+                else:
+                    answer = func.invoke(
+                        self.user_input
+                    )
 
 
                 print(
@@ -522,6 +673,7 @@ class BaseLLM:
 def invoke(
     message,
     history,
+    csv_file=None,
 ):
 
     try:
@@ -539,63 +691,7 @@ def invoke(
         # NORMALIZE HISTORY
         # =====================================================
 
-        formatted_history = []
-
-
-        for entry in history:
-
-            # New Gradio message format
-            if isinstance(entry, dict):
-
-                role = entry.get("role")
-                content = entry.get("content")
-
-                if (
-                    role in {"user", "assistant"}
-                    and content
-                ):
-
-                    formatted_history.append(
-                        {
-                            "role": role,
-                            "content": str(content),
-                        }
-                    )
-
-                continue
-
-
-            # Old tuple format
-            try:
-
-                user_msg, assistant_msg = entry
-
-            except (
-                TypeError,
-                ValueError,
-            ):
-
-                continue
-
-
-            if user_msg:
-
-                formatted_history.append(
-                    {
-                        "role": "user",
-                        "content": str(user_msg),
-                    }
-                )
-
-
-            if assistant_msg:
-
-                formatted_history.append(
-                    {
-                        "role": "assistant",
-                        "content": str(assistant_msg),
-                    }
-                )
+        formatted_history = normalize_chat_history(history)
 
 
         # =====================================================
@@ -605,6 +701,7 @@ def invoke(
         agent = BaseLLM(
             message=message,
             history=formatted_history,
+            csv_file=csv_file,
         )
 
 

@@ -109,8 +109,9 @@ def _git_sha():
 def _prompt_hash():
     # Hash the generator prompt so a silent prompt edit shows up as a new hash.
     try:
-        from src.generator import prompt
-        return hashlib.sha256(str(prompt).encode()).hexdigest()[:12]
+        from pathlib import Path
+        generator_path = Path(__file__).resolve().parent.parent / "src" / "generator.py"
+        return hashlib.sha256(generator_path.read_text(encoding="utf-8").encode()).hexdigest()[:12]
     except Exception:
         return "unknown"
 

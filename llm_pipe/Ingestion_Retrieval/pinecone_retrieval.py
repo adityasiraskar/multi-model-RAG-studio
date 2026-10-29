@@ -1,8 +1,9 @@
 import os
+from functools import lru_cache
 from typing import Dict, List
 from dotenv import load_dotenv
 from pinecone import Pinecone
-from sentence_transformers import SentenceTransformer
+from sentence_transformers import CrossEncoder, SentenceTransformer
 from collections import defaultdict
 from config import app_config
 
@@ -74,7 +75,63 @@ def _extract_chunk_text(metadata: Dict) -> str:
     )
 
 
-def semantic_search(index, embeddings_model, query, namespace, top_k=5, score_threshold=0.4, max_results=3):
+@lru_cache(maxsize=1)
+def _get_cross_encoder():
+    """Load the reranker once and reuse it across requests."""
+    return CrossEncoder("cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+
+def rerank_results(query: str, grouped_results: Dict, top_n: int = 5) -> Dict:
+    """
+    Rerank Pinecone candidates with a cross-encoder and return the top chunks.
+
+    Dense retrieval provides the candidate pool; the cross-encoder jointly scores
+    the query and each candidate for more accurate relevance ordering.
+    """
+    candidates = []
+    for document_id, pages in grouped_results.items():
+        for page_number, matches in pages.items():
+            for match in matches:
+                candidates.append((document_id, page_number, match))
+
+    if not candidates:
+        return grouped_results
+
+    try:
+        reranker = _get_cross_encoder()
+        pairs = [(query, match["text"][:2000]) for _, _, match in candidates]
+        scores = reranker.predict(pairs)
+
+        ranked = sorted(
+            zip(candidates, scores),
+            key=lambda item: float(item[1]),
+            reverse=True,
+        )[:top_n]
+
+        reranked = defaultdict(lambda: defaultdict(list))
+        for (document_id, page_number, match), rerank_score in ranked:
+            match = dict(match)
+            match["dense_score"] = match.get("score")
+            match["rerank_score"] = float(rerank_score)
+            match["score"] = float(rerank_score)
+            reranked[document_id][page_number].append(match)
+        return reranked
+
+    except Exception as exc:
+        print(f"[WARN] Cross-encoder reranking failed; using top dense candidates: {exc}")
+        fallback = defaultdict(lambda: defaultdict(list))
+        count = 0
+        for document_id, pages in grouped_results.items():
+            for page_number, matches in pages.items():
+                for match in matches:
+                    if count >= top_n:
+                        return fallback
+                    fallback[document_id][page_number].append(match)
+                    count += 1
+        return fallback
+
+
+def semantic_search(index, embeddings_model, query, namespace, top_k=30, score_threshold=0.20, max_results=30):
     """
     Perform semantic search with score filtering and result limiting.
 
@@ -175,7 +232,14 @@ def get_document_page_mapping(results_by_doc: Dict) -> Dict[str, List[str]]:
     return doc_page_mapping
 
 
-def process_query(index, embeddings_model, company: str, query: str) -> Dict:
+def process_query(
+    index,
+    embeddings_model,
+    company: str,
+    query: str,
+    candidate_k: int = 30,
+    final_k: int = 5,
+) -> Dict:
     """
     Process a query for a specific company and return relevant document chunks
     with their page numbers.
@@ -205,10 +269,13 @@ def process_query(index, embeddings_model, company: str, query: str) -> Dict:
         embeddings_model=embeddings_model,
         query=query,
         namespace=company.lower(),
-        top_k=5,
-        score_threshold=0.35,
-        max_results=5
+        top_k=candidate_k,
+        score_threshold=0.20,
+        max_results=candidate_k
     )
+
+    # Cross-encode the candidate chunks, then return only the strongest evidence.
+    results = rerank_results(query, results, top_n=final_k)
 
     # Format the results for display
     formatted_text = format_documents(results)

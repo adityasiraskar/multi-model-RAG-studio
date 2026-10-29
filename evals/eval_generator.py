@@ -31,7 +31,7 @@ THRESHOLD = 0.7
 
 def run():
     # 1. LOAD the faithfulness golden set (query + ideal_context)
-    goldens = load_goldens(GOLDEN_PATH)[:10]
+    goldens = load_goldens(GOLDEN_PATH)
 
     # 2. RUN THE GENERATOR on the GOLDEN context (isolation), build one test case each
     test_cases = []

@@ -323,10 +323,31 @@ def create_interface():
                 )
 
                 chat_history = gr.Chatbot(
-                    label="Multi Agent Chatbot",
-                    height=350,
+                    label="Multi-Agent Conversation",
+                    height=480,
+                    min_height=300,
+                    max_height=700,
+                    resizable=True,
                     show_label=True,
-                    type="messages"
+                    type="messages",
+                    layout="bubble",
+                    group_consecutive_messages=True,
+                    show_copy_button=True,
+                    autoscroll=True,
+                    line_breaks=True,
+                    placeholder="Ask a question to begin your conversation.",
+                    examples=[
+                        {"text": "What was Amazon's total revenue in 2022?"},
+                        {"text": "Paste a YouTube URL to summarize the video."},
+                        {"text": "Upload a CSV, then ask for the maximum value."},
+                        {"text": "Search for the latest NVIDIA AI announcement."},
+                    ],
+                )
+
+                agent_csv_file = gr.File(
+                    label="📁 Optional CSV for SQL routing",
+                    file_types=[".csv"],
+                    type="filepath",
                 )
 
                 with gr.Row():
@@ -391,7 +412,8 @@ def create_interface():
 
                 def handle_send(
                     message,
-                    history
+                    history,
+                    csv_file=None,
                 ):
 
                     if not message.strip():
@@ -399,14 +421,16 @@ def create_interface():
 
                     return invoke(
                         message,
-                        history
+                        history,
+                        csv_file,
                     )
 
                 send_btn.click(
                     fn=handle_send,
                     inputs=[
                         user_input,
-                        chat_history
+                        chat_history,
+                        agent_csv_file,
                     ],
                     outputs=[
                         chat_history,
@@ -421,7 +445,8 @@ def create_interface():
                     fn=handle_send,
                     inputs=[
                         user_input,
-                        chat_history
+                        chat_history,
+                        agent_csv_file,
                     ],
                     outputs=[
                         chat_history,

@@ -1,7 +1,7 @@
 import gradio as gr
 import pandas as pd
 import sqlite3
-import time
+import tempfile
 from difflib import get_close_matches
 from config import app_config
 import requests
@@ -13,7 +13,7 @@ import os
 OLLAMA_API_BASE = app_config.OLLAMA_API_BASE
 OLLAMA_MODEL = app_config.OLLAMA_MODEL
 
-def check_ollama_available():
+def check_ollama_available(model=OLLAMA_MODEL):
     """Check if Ollama is available by sending a request to list models"""
     try:
         print(f"Trying to connect to Ollama at {OLLAMA_API_BASE}...")
@@ -21,11 +21,11 @@ def check_ollama_available():
         if response.status_code == 200:
             models = response.json()
             available_models = [model["name"] for model in models.get("models", [])]
-            if OLLAMA_MODEL in available_models:
-                print(f"Ollama is available with {OLLAMA_MODEL}")
+            if model in available_models or any(name.startswith(model.split(':')[0] + ':') for name in available_models):
+                print(f"Ollama is available with {model}")
                 return True
             else:
-                print(f"Warning: {OLLAMA_MODEL} not found in Ollama. Available models: {available_models}")
+                print(f"Warning: {model} not found in Ollama. Available models: {available_models}")
                 return False
         else:
             print(f"Ollama API error: {response.status_code}")
@@ -207,7 +207,8 @@ def generate_sql_fallback(query, table_name, columns):
 
 # Function to create an SQLite database from a CSV file
 def create_database_from_csv(csv_file_path):
-    db_name = f"rag_database_{int(time.time())}.db"
+    fd, db_name = tempfile.mkstemp(prefix="rag_database_", suffix=".db")
+    os.close(fd)
     
     try:
         df = pd.read_csv(csv_file_path, encoding='utf-8')
@@ -248,6 +249,15 @@ def create_database_from_csv(csv_file_path):
 # Enhanced SQL execution with better error handling
 def execute_sql_query(db_name, sql_query):
     try:
+        normalized = sql_query.strip().rstrip(";").upper()
+        if normalized.startswith("PRAGMA"):
+            if not re.match(r"^PRAGMA\s+TABLE_INFO\s*\(\s*DATA\s*\)$", sql_query.strip(), flags=re.I):
+                raise ValueError("Only PRAGMA table_info(DATA) is allowed")
+        elif not normalized.startswith("SELECT"):
+            raise ValueError("Only read-only SELECT queries and table_info PRAGMA are allowed")
+        if ";" in sql_query.strip().rstrip(";"):
+            raise ValueError("Multiple SQL statements are not allowed")
+
         conn = sqlite3.connect(db_name)
         
         if sql_query.strip().upper().startswith("PRAGMA"):
@@ -280,13 +290,14 @@ def display_columns(csv_file):
         return "Please upload a CSV file first.", "No columns available"
     
     try:
+        csv_path = csv_file.name if hasattr(csv_file, "name") else str(csv_file)
         # Try to read with different encodings
         try:
-            df = pd.read_csv(csv_file.name, encoding='utf-8')
+            df = pd.read_csv(csv_path, encoding='utf-8')
         except UnicodeDecodeError:
             for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
                 try:
-                    df = pd.read_csv(csv_file.name, encoding=encoding)
+                    df = pd.read_csv(csv_path, encoding=encoding)
                     break
                 except UnicodeDecodeError:
                     continue
@@ -320,13 +331,16 @@ def process_query_sql(csv_file, query, selected_model, use_ollama):
     
     if not query.strip():
         return "Please enter a query.", "", pd.DataFrame()
+
+    csv_path = csv_file.name if hasattr(csv_file, "name") else str(csv_file)
+    db_name = None
     
     try:
         # Create database from CSV
-        db_name, table_name, columns, original_columns = create_database_from_csv(csv_file.name)
+        db_name, table_name, columns, original_columns = create_database_from_csv(csv_path)
         
         # Generate SQL query
-        if use_ollama and check_ollama_available():
+        if use_ollama and check_ollama_available(selected_model):
             sql_query = generate_sql_with_ollama(query, table_name, columns, selected_model)
             if sql_query is None:
                 # Fallback to rule-based approach if Ollama fails
@@ -344,16 +358,16 @@ def process_query_sql(csv_file, query, selected_model, use_ollama):
         # Execute SQL query
         result = execute_sql_query(db_name, sql_query)
         
-        # Clean up the database file
-        try:
-            os.remove(db_name)
-        except OSError:
-            pass
-        
         return status_msg, sql_query, result
         
     except Exception as e:
         return f"❌ Error processing query: {str(e)}", "", pd.DataFrame()
+    finally:
+        if db_name:
+            try:
+                os.remove(db_name)
+            except OSError:
+                pass
 
 # Function to update model dropdown
 def refresh_models():

@@ -1,6 +1,5 @@
 import os
 import time
-import uuid
 import json
 import fitz  # PyMuPDF
 from dotenv import load_dotenv
@@ -219,7 +218,7 @@ def process_and_ingest_pdf(index, embeddings_model, pdf_path, namespace, chunk_s
         texts = [chunk.page_content for chunk in current_batch]
         metadatas = [prepare_metadata(chunk.page_content, chunk.metadata, pdf_path) for chunk in current_batch]
         ids = [
-            f"{namespace}-{chunk.metadata.get('page', '0')}-{idx}-{str(uuid.uuid4())[:8]}"
+            f"{namespace}-{chunk.metadata.get('page', '0')}-{batch_idx}-{idx}"
             for idx, chunk in enumerate(current_batch)
         ]
 

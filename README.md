@@ -16,7 +16,7 @@ The production code lives in `llm_pipe/`:
 
 The evaluation adapters live in `src/`:
 
-- `src/reranker.py`: exposes the existing Pinecone retrieval as evaluator-compatible documents.
+- `src/reranker.py`: evaluator adapter for the production cross-encoder retrieval pipeline.
 - `src/rag_pipeline.py`: shared `retrieve -> generate` pipeline contract.
 - `src/generator.py`: adapter used by the evaluation suite.
 
@@ -42,7 +42,8 @@ The current code uses:
 - **OpenAI**: document-QA generation and DeepEval judging, configured with `OPENAI_API_KEY` and `OPENAI_MODEL`.
 - **Ollama**: multi-agent routing, SQL generation when enabled, YouTube question answering, and YouTube summarization. The default model is `phi3:mini`.
 - **Pinecone**: vector storage and retrieval.
-- **Sentence Transformers**: local embeddings using `all-mpnet-base-v2`.
+- **Sentence Transformers embeddings**: `all-mpnet-base-v2` creates 768-dimensional PDF vectors.
+- **Cross-encoder reranking**: `cross-encoder/ms-marco-MiniLM-L-6-v2` reranks 30 dense candidates and returns the top 5 chunks; dense fallback remains bounded to 5 if reranking fails.
 
 Do not put API keys in Python files. API keys belong only in the untracked `.env` file.
 
@@ -62,7 +63,7 @@ All Python dependencies are in `requirements.txt`. There is no separate `full-re
 Run commands from the repository root:
 
 ```powershell
-cd D:\sabudh_project\rag_with_eval\multi-model-RAG-studio
+cd D:\sabudh_project\RAG_prac_interview\multi-model-RAG-studio
 py -3.13 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
@@ -131,7 +132,7 @@ python -m llm_pipe.gradio_app
 
 The UI provides four tabs:
 
-1. **Multi-Agent Assistant**: routes company, YouTube, and general queries.
+1. **Multi-Agent Assistant**: routes company-PDF queries, pasted YouTube URLs, uploaded CSVs, and unmatched queries to web search. CSV uploads use an optional file input in this tab.
 2. **Document QA**: answers questions about Amazon, Apple, NVIDIA, and Tesla with page citations and optional audio.
 3. **YouTube QA**: fetches transcripts, answers questions, and summarizes videos.
 4. **SQL Agent**: uploads CSV files, generates SQL with Ollama or fallback rules, and executes SQLite queries.
