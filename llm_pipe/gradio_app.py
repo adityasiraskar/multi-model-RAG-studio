@@ -942,7 +942,7 @@ if __name__ == "__main__":
     demo = create_interface()
 
     demo.launch(
-        server_name=os.getenv("GRADIO_SERVER_NAME", "127.0.0.1"),
+        server_name=os.getenv("GRADIO_SERVER_NAME", "0.0.0.0"),
         server_port=int(
             os.getenv("PORT", "7860")
         ),

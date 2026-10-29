@@ -250,8 +250,9 @@ Confirm that ingestion completed for all four namespaces and that the company na
 
 ## Run with Docker
 
-Docker uses the same four-PDF application entrypoint as local execution. The
-container listens on port `7860`; Ollama and Pinecone remain external services.
+Docker packages the Python 3.13 application and native dependencies into one
+reproducible image. Ollama, Pinecone, OpenAI, and web APIs remain external
+services.
 
 1. Make sure `.env` exists in the repository root and contains valid
    `PINECONE_API_KEY` and `OPENAI_API_KEY` values.
@@ -266,29 +267,72 @@ docker build -t multi-model-rag-studio:latest .
 ```powershell
 docker run --rm --name multi-model-rag-studio `
   --env-file .env `
+  --add-host host.docker.internal:host-gateway `
+  -e GRADIO_SERVER_NAME=0.0.0.0 `
+  -e PORT=7860 `
+  -e OLLAMA_API_BASE=http://host.docker.internal:11434/api `
   -p 7860:7860 `
   multi-model-rag-studio:latest
 ```
 
-Open `http://localhost:7860` in a browser. The container does not start Ollama;
-the application must be able to reach the configured `OLLAMA_API_BASE`. On
-Windows, host services may require `http://host.docker.internal:11434/api`
-instead of `http://localhost:11434/api` inside the container.
+Open `http://localhost:7860` in a browser. The container binds Gradio to
+`0.0.0.0` so Docker port publishing reaches the application.
 
-Alternatively, use Compose:
+The Docker container does not start Ollama. Start Ollama on the host first:
+
+```powershell
+ollama serve
+Invoke-WebRequest -UseBasicParsing http://127.0.0.1:11434/api/tags
+```
+
+Inside a container, `localhost` refers to the container, not the Windows
+host. Use `http://host.docker.internal:11434/api` for Ollama as configured in
+Docker Compose. Docker Desktop and compatible Linux Docker installations use
+the Compose `host-gateway` mapping for this host connection.
+
+### Run with Docker Compose
+
+Docker Compose uses the same image and automatically provides:
+
+- Gradio port mapping on `7860`
+- The Ollama host API address
+- A `0.0.0.0` Gradio bind address
+- Persistent volumes for models, generated page images, and page mappings
+- Automatic container restart unless it is explicitly stopped
+- A container health check
+
+Start the service:
 
 ```powershell
 docker compose up --build
 ```
 
-Stop it with:
+Run it in the background:
+
+```powershell
+docker compose up --build -d
+docker compose ps
+docker compose logs -f genai
+```
+
+Stop the service:
 
 ```powershell
 docker compose down
 ```
 
-The `.dockerignore` file excludes `.env`, virtual environments, generated
-artifacts, and local caches from the image build context.
+The persistent volumes are managed by Docker and are not removed by
+`docker compose down`. Remove them explicitly only when cached models and
+generated artifacts must also be deleted:
+
+```powershell
+docker compose down -v
+```
+
+The `.dockerignore` file excludes `.env`, virtual environments, model caches,
+generated artifacts, databases, Git metadata, and temporary files from the
+image build context. Secrets remain available at runtime through `.env`, not
+inside the Docker image.
 
 ## Security
 

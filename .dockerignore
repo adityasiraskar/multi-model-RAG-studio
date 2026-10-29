@@ -14,3 +14,6 @@ transcript_cache.json
 *.db
 *.sqlite3
 reports/
+.venv/
+*.log
+Flow diagram/

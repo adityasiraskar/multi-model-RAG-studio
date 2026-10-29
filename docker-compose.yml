@@ -4,11 +4,25 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: genai
+    container_name: multi-model-rag-studio
     env_file:
       - .env
     environment:
-      - PYTHONUNBUFFERED=1
-      - OLLAMA_API_BASE=http://host.docker.internal:11434/api
+      PYTHONUNBUFFERED: "1"
+      GRADIO_SERVER_NAME: "0.0.0.0"
+      PORT: "7860"
+      OLLAMA_API_BASE: "http://host.docker.internal:11434/api"
     ports:
       - "7860:7860"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - rag_models:/app/models
+      - rag_page_images:/app/page_images
+      - rag_json:/app/jsons
+    restart: unless-stopped
+
+volumes:
+  rag_models:
+  rag_page_images:
+  rag_json:
